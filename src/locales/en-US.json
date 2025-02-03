@@ -1,0 +1,25 @@
+{
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "theme": "Theme",
+      "themes": {
+        "light": "Light",
+        "dark": "Dark"
+      },
+      "fontSize": "Font Size",
+      "compactMode": "Compact Mode"
+    },
+    "preferences": {
+      "title": "Preferences",
+      "language": "Language",
+      "languages": {
+        "pt-BR": "Portuguese (Brazil)",
+        "en-US": "English (US)",
+        "es-ES": "Spanish (Spain)"
+      },
+      "notifications": "Notifications"
+    }
+  }
+}
