@@ -1,98 +1,181 @@
 :root {
-  /* Cores base */
-  --primary-color: #3498db;
-  --secondary-color: #2980b9;
-  --accent-color: #e74c3c;
+  /* Paleta Moderna - Noir Elegante */
+  --color-black-900: #0A0A0A;    /* Preto profundo */
+  --color-black-800: #121212;    /* Preto de fundo principal */
+  --color-black-700: #1E1E1E;    /* Preto de componentes */
+  --color-black-600: #2A2A2A;    /* Preto médio */
+  
+  /* Tons de Cinza */
+  --color-gray-500: #4A4A4A;     /* Cinza escuro */
+  --color-gray-400: #6A6A6A;     /* Cinza médio */
+  --color-gray-300: #8C8C8C;     /* Cinza claro */
+  --color-gray-200: #ACACAC;     /* Cinza muito claro */
+  
+  /* Tons de Branco */
+  --color-white-100: #F5F5F5;    /* Branco off */
+  --color-white-200: #FFFFFF;    /* Branco puro */
+  
+  /* Cores de Acento */
+  --color-accent-silver: #C0C0C0; /* Prata */
+  --color-accent-charcoal: #36454F; /* Cinza carvão */
+  --color-accent-blue: #3498DB;    /* Azul suave */
+  --color-accent-green: #2ECC71;   /* Verde suave */
 
-  /* Tema Claro */
-  --background-light: #ffffff;
-  --background-mid-light: #f4f6f7;
-  --background-dark-light: #ecf0f1;
-  --text-color-light: #2c3e50;
-  --text-muted-light: #7f8c8d;
-}
+  /* Variáveis de Tema Padrão (Modo Escuro) */
+  --background-darkest: var(--color-black-900);
+  --background-darker: var(--color-black-800);
+  --background-dark: var(--color-black-700);
+  --background-mid-dark: var(--color-black-600);
+  
+  --text-color: var(--color-white-100);
+  --text-color-muted: var(--color-gray-300);
+  
+  --primary-color: var(--color-white-200);
+  --secondary-color: var(--color-gray-500);
+  --accent-color: var(--color-accent-silver);
+  
+  --shadow-color: rgba(0,0,0,0.5);
+  --border-color: var(--color-black-600);
 
-/* Tema Escuro Profundo */
-.dark-theme {
-  --background-darkest: #121212;
-  --background-darker: #1E1E1E;
-  --background-dark: #252525;
-  --background-mid-dark: #2C2C2C;
+  /* Cores específicas de componentes */
+  --sidebar-background: var(--color-black-700);
+  --content-background: var(--color-black-800);
+  --element-background: var(--color-black-600);
   
-  --text-color: #E0E0E0;
-  --text-muted: #A0A0A0;
-  
-  --primary-color: #4FC3F7;
-  --secondary-color: #29B6F6;
-  --accent-color: #FF5252;
-  
-  --shadow-color: rgba(0,0,0,0.3);
-  --border-color: #333333;
+  /* Cores de Tarefas e Pomodoro */
+  --task-background: var(--color-black-800);
+  --pomodoro-background: var(--color-black-700);
 }
 
 /* Tema Claro */
 .light-theme {
-  --background-darkest: #ffffff;
-  --background-darker: #f4f6f7;
-  --background-dark: #ecf0f1;
-  --background-mid-dark: #e0e6e8;
+  --background-darkest: var(--color-white-200);
+  --background-darker: var(--color-white-100);
+  --background-dark: var(--color-gray-200);
+  --background-mid-dark: var(--color-gray-300);
   
-  --text-color: #2c3e50;
-  --text-muted: #7f8c8d;
+  --text-color: var(--color-black-900);
+  --text-color-muted: var(--color-gray-500);
   
-  --primary-color: #3498db;
-  --secondary-color: #2980b9;
-  --accent-color: #e74c3c;
+  --primary-color: var(--color-black-900);
+  --secondary-color: var(--color-gray-400);
+  --accent-color: var(--color-accent-blue);
   
   --shadow-color: rgba(0,0,0,0.1);
-  --border-color: #d3d3d3;
+  --border-color: var(--color-gray-300);
+
+  /* Cores específicas de componentes */
+  --sidebar-background: var(--color-white-100);
+  --content-background: var(--color-white-200);
+  --element-background: var(--color-gray-200);
+  
+  /* Cores de Tarefas e Pomodoro */
+  --task-background: var(--color-white-100);
+  --pomodoro-background: var(--color-white-200);
+}
+
+/* Transição de tema */
+.theme-transition {
+  transition: 
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease;
 }
 
 /* Estilos base */
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+body, html {
+  font-family: 'Inter', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   background-color: var(--background-darkest);
   color: var(--text-color);
   line-height: 1.6;
-  transition: background-color 0.3s, color 0.3s;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  letter-spacing: 0.5px;
 }
 
-/* Estilos de componentes */
+/* Scrollbar moderna */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background-darker);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--secondary-color);
+  border-radius: 10px;
+  border: 3px solid var(--background-darker);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-color);
+}
+
+/* Elementos interativos */
 input, 
 select, 
-button {
-  background-color: var(--background-dark);
+button, 
+textarea {
+  background-color: var(--background-mid-dark);
   color: var(--text-color);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 8px;
+  padding: 10px;
   transition: all 0.3s ease;
 }
 
-input:focus,
-select:focus,
-button:focus {
+input:focus, 
+select:focus, 
+button:focus, 
+textarea:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(192, 192, 192, 0.2);
 }
 
 button {
   cursor: pointer;
-  padding: 8px 16px;
+  font-weight: 500;
 }
 
 button:hover {
-  background-color: var(--background-mid-dark);
+  background-color: var(--background-dark);
 }
 
-/* Modo compacto */
-body.compact-mode {
-  font-size: 14px;
+/* Responsividade */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
 }
 
-/* Transições suaves */
-* {
-  transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+/* Animações sutis */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+/* Estilos específicos para tema claro */
+.light-theme {
+  /* Ajustes para melhor legibilidade no tema claro */
+  input, 
+  select, 
+  button, 
+  textarea {
+    background-color: var(--content-background);
+    border-color: var(--border-color);
+    color: var(--text-color);
+  }
+
+  button:hover {
+    background-color: var(--background-mid-dark);
+  }
 }

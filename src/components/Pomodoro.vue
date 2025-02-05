@@ -1,428 +1,640 @@
 <template>
   <div class="pomodoro-container">
-    <div class="pomodoro-stats">
-      <div class="stat-item">
-        <span>Pomodoros Concluídos:</span>
-        <span class="stat-value">{{ completedPomodoros }}</span>
-      </div>
-      <div class="stat-item">
-        <span>Tempo Total de Trabalho:</span>
-        <span class="stat-value">{{ formatTotalWorkTime }}</span>
-      </div>
-    </div>
-
-    <div class="project-selection">
-      <h3>Selecione um Projeto</h3>
-      <div class="project-list">
-        <div 
-          v-for="project in projects" 
-          :key="project.id"
-          class="project-item"
-          :class="{ 'selected': selectedProject?.id === project.id }"
-          @click="selectProject(project)"
-        >
-          {{ project.name }}
-        </div>
-      </div>
-    </div>
-
-    <div class="pomodoro-timer">
-      <div class="timer-mode">
-        <button 
-          @click="switchMode('work')" 
-          :class="{ active: currentMode === 'work' }"
-        >
-          Trabalho
-        </button>
-        <button 
-          @click="switchMode('break')" 
-          :class="{ active: currentMode === 'break' }"
-        >
-          Descanso
-        </button>
-      </div>
-
+    <div class="timer-wrapper">
       <div class="timer-display">
-        <span class="minutes">{{ formattedMinutes }}</span>
-        <span class="separator">:</span>
-        <span class="seconds">{{ formattedSeconds }}</span>
+        <span class="time">{{ formattedTime }}</span>
       </div>
       
       <div class="timer-controls">
-        <button 
-          @click="startTimer" 
-          v-if="!isRunning"
-          class="control-btn start-btn"
-          :disabled="!selectedProject"
-        >
-          Iniciar
-        </button>
-        <button 
-          @click="pauseTimer" 
-          v-if="isRunning"
-          class="control-btn pause-btn"
-        >
-          Pausar
-        </button>
-        <button 
-          @click="resetTimer" 
-          class="control-btn reset-btn"
-        >
-          Resetar
-        </button>
+        <div class="mode-selector">
+          <button 
+            @click="setMode('work')" 
+            :class="{ active: currentMode === 'work' }"
+          >
+            🍅 Foco
+          </button>
+          <button 
+            @click="setMode('break')" 
+            :class="{ active: currentMode === 'break' }"
+          >
+            ☕ Pausa
+          </button>
+        </div>
+
+        <div class="project-section">
+          <div class="project-selector">
+            <button 
+              @click="showProjectModal = true" 
+              class="project-select-btn"
+            >
+              {{ selectedProject ? selectedProject.name : '📁 Novo Projeto' }}
+            </button>
+          </div>
+
+          <div class="project-actions">
+            <button 
+              @click="openNewProjectModal" 
+              class="new-project-btn"
+            >
+              ➕ Criar Projeto
+            </button>
+          </div>
+        </div>
+
+        <div class="action-buttons">
+          <button 
+            v-if="!isRunning" 
+            @click="startTimer" 
+            class="start-btn"
+            :disabled="!selectedProject"
+          >
+            ▶️ Iniciar
+          </button>
+          <button 
+            v-else 
+            @click="pauseTimer" 
+            class="pause-btn"
+          >
+            ⏸️ Pausar
+          </button>
+          <button 
+            @click="resetTimer" 
+            class="reset-btn"
+          >
+            🔄 Reiniciar
+          </button>
+        </div>
       </div>
-      
-      <div class="timer-settings">
-        <div class="setting-group">
-          <label>Tempo de Trabalho (minutos):</label>
-          <input 
-            type="number" 
-            v-model.number="settingsWorkDuration" 
-            min="1" 
-            max="60"
-          />
+
+      <div class="timer-stats">
+        <div class="stat-item">
+          <span>Ciclos Concluídos</span>
+          <span class="stat-value">{{ completedCycles }}</span>
         </div>
-        <div class="setting-group">
-          <label>Tempo de Descanso (minutos):</label>
-          <input 
-            type="number" 
-            v-model.number="settingsBreakDuration" 
-            min="1" 
-            max="30"
-          />
+        <div class="stat-item">
+          <span>Tempo Total de Foco</span>
+          <span class="stat-value">{{ totalFocusTime }} min</span>
         </div>
-        <button 
-          @click="applySettings" 
-          class="settings-btn"
+      </div>
+    </div>
+
+    <!-- Modal de Seleção de Projeto -->
+    <div v-if="showProjectModal" class="project-modal">
+      <div class="project-modal-content">
+        <h2>Selecionar Projeto</h2>
+        <div 
+          v-if="projects.length === 0" 
+          class="no-projects"
         >
-          Aplicar
-        </button>
+          <p>Nenhum projeto encontrado.</p>
+          <button @click="openNewProjectModal">Criar Primeiro Projeto</button>
+        </div>
+        <div 
+          v-else
+          v-for="project in projects" 
+          :key="project.id" 
+          class="project-option"
+          :class="{ 'selected': selectedProject?.id === project.id }"
+        >
+          <div 
+            class="project-info" 
+            @click="selectProject(project)"
+          >
+            <span>{{ project.name }}</span>
+            <span class="project-hours">{{ formatHours(project.totalHours) }}</span>
+          </div>
+          <button 
+            class="delete-project-btn" 
+            @click.stop="prepareDeleteProject(project)"
+          >
+            🗑️
+          </button>
+        </div>
+        <div class="modal-actions">
+          <button @click="showProjectModal = false">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Novo Projeto -->
+    <div v-if="showNewProjectModal" class="new-project-modal">
+      <div class="new-project-modal-content">
+        <h2>Novo Projeto</h2>
+        <input 
+          v-model="newProjectName" 
+          placeholder="Nome do Projeto"
+        />
+        <textarea 
+          v-model="newProjectDescription" 
+          placeholder="Descrição (opcional)"
+        ></textarea>
+        <div class="modal-actions">
+          <button 
+            @click="createProject"
+            :disabled="!newProjectName.trim()"
+          >
+            Criar
+          </button>
+          <button @click="closeNewProjectModal">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div v-if="showDeleteConfirmModal" class="delete-confirm-modal">
+      <div class="delete-confirm-modal-content">
+        <h2>Excluir Projeto</h2>
+        <p>Tem certeza que deseja excluir o projeto "{{ selectedProjectToDelete?.name }}"?</p>
+        <div class="modal-actions">
+          <button @click="confirmDeleteProject" class="delete-btn">Excluir</button>
+          <button @click="cancelDeleteProject" class="cancel-btn">Cancelar</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
-import ProjectTracker from './ProjectTracker.vue'
+import { ref, computed, onUnmounted, onMounted, watch } from 'vue'
 
-// Configurações padrão
-const DEFAULT_WORK_DURATION = 25
-const DEFAULT_BREAK_DURATION = 5
+// Configurações de tempo
+const WORK_DURATION = 25 * 60  // 25 minutos
+const BREAK_DURATION = 5 * 60  // 5 minutos
 
-// Estados do timer
+// Estados
 const currentMode = ref('work')
-const workDuration = ref(DEFAULT_WORK_DURATION * 60)
-const breakDuration = ref(DEFAULT_BREAK_DURATION * 60)
-const remainingTime = ref(workDuration.value)
+const timeRemaining = ref(WORK_DURATION)
 const isRunning = ref(false)
-const timerId = ref(null)
+const timer = ref(null)
+const completedCycles = ref(0)
+const totalFocusTime = ref(0)
 
-// Configurações ajustáveis
-const settingsWorkDuration = ref(DEFAULT_WORK_DURATION)
-const settingsBreakDuration = ref(DEFAULT_BREAK_DURATION)
-
-// Estatísticas
-const completedPomodoros = ref(0)
-const totalWorkTime = ref(0)
-
-// Projetos
+// Estados de projeto
 const projects = ref([])
 const selectedProject = ref(null)
+const showProjectModal = ref(false)
+const showNewProjectModal = ref(false)
+const newProjectName = ref('')
+const newProjectDescription = ref('')
+const selectedProjectToDelete = ref(null)
+const showDeleteConfirmModal = ref(false)
 
-const formattedMinutes = computed(() => {
-  const minutes = Math.floor(remainingTime.value / 60)
-  return minutes.toString().padStart(2, '0')
+// Tempo formatado
+const formattedTime = computed(() => {
+  const minutes = Math.floor(timeRemaining.value / 60)
+  const seconds = timeRemaining.value % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 })
 
-const formattedSeconds = computed(() => {
-  const seconds = remainingTime.value % 60
-  return seconds.toString().padStart(2, '0')
-})
-
-const formatTotalWorkTime = computed(() => {
-  const hours = Math.floor(totalWorkTime.value / 3600)
-  const minutes = Math.floor((totalWorkTime.value % 3600) / 60)
-  return `${hours}h ${minutes}m`
-})
-
-const selectProject = (project) => {
-  selectedProject.value = project
+// Formatar horas
+const formatHours = (hours) => {
+  return hours ? `${hours.toFixed(2)} h` : '0h'
 }
 
+// Carregar projetos do localStorage
+const loadProjects = () => {
+  try {
+    const savedProjects = localStorage.getItem('productivityProjects')
+    if (savedProjects) {
+      projects.value = JSON.parse(savedProjects)
+      
+      // Restaurar projeto selecionado
+      const lastSelectedProjectId = localStorage.getItem('selectedProjectId')
+      if (lastSelectedProjectId) {
+        const project = projects.value.find(p => p.id === parseInt(lastSelectedProjectId))
+        if (project) {
+          selectedProject.value = project
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Erro ao carregar projetos:', error)
+  }
+}
+
+// Salvar projetos no localStorage
+const saveProjects = () => {
+  try {
+    localStorage.setItem('productivityProjects', JSON.stringify(projects.value))
+    
+    // Salvar ID do projeto selecionado
+    if (selectedProject.value) {
+      localStorage.setItem('selectedProjectId', selectedProject.value.id)
+    }
+  } catch (error) {
+    console.error('Erro ao salvar projetos:', error)
+  }
+}
+
+// Criar novo projeto
+const createProject = () => {
+  if (!newProjectName.value.trim()) {
+    alert('Por favor, insira um nome para o projeto')
+    return
+  }
+
+  const newProject = {
+    id: Date.now(),
+    name: newProjectName.value,
+    description: newProjectDescription.value || '',
+    totalHours: 0,
+    streak: 0,
+    workSessions: []
+  }
+
+  projects.value.push(newProject)
+  selectProject(newProject)
+  closeNewProjectModal()
+  saveProjects()
+}
+
+// Abrir modal de novo projeto
+const openNewProjectModal = () => {
+  showNewProjectModal.value = true
+  showProjectModal.value = false
+}
+
+// Fechar modal de novo projeto
+const closeNewProjectModal = () => {
+  showNewProjectModal.value = false
+  newProjectName.value = ''
+  newProjectDescription.value = ''
+}
+
+// Selecionar projeto
+const selectProject = (project) => {
+  selectedProject.value = project
+  showProjectModal.value = false
+  saveProjects()
+}
+
+// Preparar exclusão de projeto
+const prepareDeleteProject = (project) => {
+  selectedProjectToDelete.value = project
+  showDeleteConfirmModal.value = true
+}
+
+// Confirmar exclusão de projeto
+const confirmDeleteProject = () => {
+  if (selectedProjectToDelete.value) {
+    const index = projects.value.findIndex(p => p.id === selectedProjectToDelete.value.id)
+    if (index !== -1) {
+      projects.value.splice(index, 1)
+      if (selectedProject.value?.id === selectedProjectToDelete.value.id) {
+        selectedProject.value = null
+      }
+      saveProjects()
+    }
+  }
+  cancelDeleteProject()
+}
+
+// Cancelar exclusão de projeto
+const cancelDeleteProject = () => {
+  selectedProjectToDelete.value = null
+  showDeleteConfirmModal.value = false
+}
+
+// Carregar estado do Pomodoro
+const loadTimerState = () => {
+  const savedState = localStorage.getItem('pomodoroState')
+  if (savedState) {
+    try {
+      const state = JSON.parse(savedState)
+      currentMode.value = state.currentMode
+      timeRemaining.value = state.timeRemaining
+      completedCycles.value = state.completedCycles
+      totalFocusTime.value = state.totalFocusTime
+    } catch (error) {
+      console.error('Erro ao carregar estado do Pomodoro:', error)
+    }
+  }
+}
+
+// Salvar estado do Pomodoro
+const saveTimerState = () => {
+  try {
+    localStorage.setItem('pomodoroState', JSON.stringify({
+      currentMode: currentMode.value,
+      timeRemaining: timeRemaining.value,
+      completedCycles: completedCycles.value,
+      totalFocusTime: totalFocusTime.value
+    }))
+  } catch (error) {
+    console.error('Erro ao salvar estado do Pomodoro:', error)
+  }
+}
+
+// Iniciar timer
 const startTimer = () => {
   if (!isRunning.value && selectedProject.value) {
     isRunning.value = true
-    timerId.value = setInterval(() => {
-      if (remainingTime.value > 0) {
-        remainingTime.value--
+    timer.value = setInterval(() => {
+      if (timeRemaining.value > 0) {
+        timeRemaining.value--
+        saveTimerState()
         
-        // Contabilizar tempo de trabalho
+        // Contabilizar tempo de foco
         if (currentMode.value === 'work') {
-          totalWorkTime.value++
+          totalFocusTime.value = Math.floor((WORK_DURATION - timeRemaining.value) / 60)
         }
       } else {
         // Trocar modo quando o tempo acabar
         if (currentMode.value === 'work') {
-          completedPomodoros.value++
+          completedCycles.value++
           
-          // Adicionar sessão de trabalho ao projeto
+          // Adicionar sessão de trabalho ao projeto selecionado
           if (selectedProject.value) {
-            const projectTrackerRef = getCurrentInstance()?.refs.projectTracker
-            if (projectTrackerRef) {
-              projectTrackerRef.addWorkSession(workDuration.value)
+            const workSession = {
+              id: Date.now(),
+              date: new Date(),
+              duration: WORK_DURATION / 60  // duração em minutos
             }
+
+            if (!selectedProject.value.workSessions) {
+              selectedProject.value.workSessions = []
+            }
+
+            selectedProject.value.workSessions.push(workSession)
+            selectedProject.value.totalHours += WORK_DURATION / 3600  // converter para horas
+            selectedProject.value.lastWorkDate = new Date()
+
+            // Atualizar streak
+            const today = new Date()
+            const lastWorkDate = selectedProject.value.lastWorkDate
+
+            if (lastWorkDate && 
+                today.getDate() === lastWorkDate.getDate() + 1 && 
+                today.getMonth() === lastWorkDate.getMonth() && 
+                today.getFullYear() === lastWorkDate.getFullYear()) {
+              selectedProject.value.streak += 1
+            } else if (!lastWorkDate || 
+                       today.getDate() !== lastWorkDate.getDate() || 
+                       today.getMonth() !== lastWorkDate.getMonth() || 
+                       today.getFullYear() !== lastWorkDate.getFullYear()) {
+              selectedProject.value.streak = 1
+            }
+
+            saveProjects()
           }
-          
-          switchMode('break')
+
+          // Mudar para modo de pausa
+          currentMode.value = 'break'
+          timeRemaining.value = BREAK_DURATION
         } else {
-          switchMode('work')
+          // Voltar para modo de trabalho
+          currentMode.value = 'work'
+          timeRemaining.value = WORK_DURATION
         }
       }
     }, 1000)
   }
 }
 
+// Pausar timer
 const pauseTimer = () => {
-  if (timerId.value) {
-    clearInterval(timerId.value)
+  if (isRunning.value) {
+    clearInterval(timer.value)
     isRunning.value = false
   }
 }
 
+// Resetar timer
 const resetTimer = () => {
-  pauseTimer()
-  remainingTime.value = currentMode.value === 'work' 
-    ? workDuration.value 
-    : breakDuration.value
+  clearInterval(timer.value)
+  isRunning.value = false
+  currentMode.value = 'work'
+  timeRemaining.value = WORK_DURATION
+  saveTimerState()
 }
 
-const switchMode = (mode) => {
-  pauseTimer()
+// Definir modo
+const setMode = (mode) => {
   currentMode.value = mode
-  remainingTime.value = mode === 'work' 
-    ? workDuration.value 
-    : breakDuration.value
+  timeRemaining.value = mode === 'work' ? WORK_DURATION : BREAK_DURATION
 }
 
-const applySettings = () => {
-  // Validar entradas
-  settingsWorkDuration.value = Math.max(1, Math.min(60, settingsWorkDuration.value))
-  settingsBreakDuration.value = Math.max(1, Math.min(30, settingsBreakDuration.value))
-
-  // Atualizar durações
-  workDuration.value = settingsWorkDuration.value * 60
-  breakDuration.value = settingsBreakDuration.value * 60
-
-  // Resetar timer no modo atual
-  remainingTime.value = currentMode.value === 'work' 
-    ? workDuration.value 
-    : breakDuration.value
-
-  pauseTimer()
-}
-
-// Carregar dados salvos
+// Carregar projetos e estado ao montar
 onMounted(() => {
-  // Carregar dados de pomodoro
-  const savedData = localStorage.getItem('pomodoroData')
-  if (savedData) {
-    const data = JSON.parse(savedData)
-    completedPomodoros.value = data.completedPomodoros || 0
-    totalWorkTime.value = data.totalWorkTime || 0
-  }
-
-  // Carregar projetos
-  const savedProjects = localStorage.getItem('productivityProjects')
-  if (savedProjects) {
-    projects.value = JSON.parse(savedProjects)
-  }
-
-  // Definir título da página
-  if (getCurrentInstance()?.appContext.config.globalProperties.$setPageTitle) {
-    getCurrentInstance().appContext.config.globalProperties.$setPageTitle('Pomodoro')
-  } else {
-    document.title = 'Pomodoro | Productivity App'
-  }
+  loadProjects()
+  loadTimerState()
 })
 
-// Salvar dados ao desmontar
+// Limpar timer ao desmontar
 onUnmounted(() => {
-  if (timerId.value) {
-    clearInterval(timerId.value)
-  }
-  
-  localStorage.setItem('pomodoroData', JSON.stringify({
-    completedPomodoros: completedPomodoros.value,
-    totalWorkTime: totalWorkTime.value
-  }))
+  clearInterval(timer.value)
 })
 </script>
 
 <style scoped>
 .pomodoro-container {
-  background-color: var(--background-dark);
-  border-radius: 15px;
-  padding: 30px;
-  max-width: 500px;
+  width: 100%;
+  max-width: 600px;
   margin: 0 auto;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  color: var(--text-color);
+  padding: 20px;
+  background-color: var(--background-mid-dark);
+  border-radius: 10px;
 }
 
-.pomodoro-stats {
+.timer-display {
+  text-align: center;
+  font-size: 4rem;
+  margin-bottom: 20px;
+  color: var(--primary-color);
+}
+
+.timer-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.mode-selector {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.mode-selector button {
+  padding: 10px 20px;
+  background-color: var(--background-dark);
+  color: var(--text-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.mode-selector button.active {
+  background-color: var(--primary-color);
+  color: var(--background-darkest);
+}
+
+.project-section {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+}
+
+.project-select-btn, .new-project-btn {
+  padding: 10px 20px;
+  background-color: var(--background-dark);
+  color: var(--text-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.project-select-btn:hover, .new-project-btn:hover {
+  background-color: var(--accent-color);
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.start-btn, .pause-btn, .reset-btn {
+  padding: 10px 20px;
+  background-color: var(--background-dark);
+  color: var(--text-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.start-btn:hover, .pause-btn:hover, .reset-btn:hover {
+  background-color: var(--accent-color);
+}
+
+.start-btn:disabled {
   background-color: var(--background-mid-dark);
-  padding: 15px;
-  border-radius: 10px;
+  cursor: not-allowed;
+}
+
+.timer-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+  padding: 10px;
+  background-color: var(--background-dark);
+  border-radius: 5px;
 }
 
 .stat-item {
   display: flex;
   flex-direction: column;
   align-items: center;
+  color: var(--text-color);
 }
 
 .stat-value {
-  font-size: 1.5em;
   font-weight: bold;
   color: var(--primary-color);
 }
 
-.timer-mode {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.timer-mode button {
-  margin: 0 10px;
-  padding: 10px 20px;
-  background-color: var(--background-mid-dark);
-  border: none;
-  border-radius: 8px;
-  color: var(--text-color);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.timer-mode button.active {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.timer-display {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 4rem;
-  margin-bottom: 30px;
-}
-
-.timer-display .minutes,
-.timer-display .seconds {
-  background-color: var(--background-mid-dark);
-  padding: 10px 20px;
-  border-radius: 10px;
-  margin: 0 10px;
-}
-
-.timer-controls {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin-bottom: 30px;
-}
-
-.control-btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.start-btn {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.pause-btn {
-  background-color: #FFC107;
-  color: black;
-}
-
-.reset-btn {
-  background-color: #F44336;
-  color: white;
-}
-
-.timer-settings {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-
-.setting-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.project-modal, .new-project-modal, .delete-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
 }
 
-.timer-settings label {
-  margin-bottom: 5px;
+.project-modal-content, .new-project-modal-content, .delete-confirm-modal-content {
+  background-color: var(--background-darker);
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  max-height: 80%;
+  overflow-y: auto;
 }
 
-.timer-settings input {
-  width: 100px;
-  padding: 5px;
-  border-radius: 5px;
-  border: 1px solid var(--border-color);
+.project-option {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.3s;
+}
+
+.project-option:hover {
   background-color: var(--background-mid-dark);
+}
+
+.project-option.selected {
+  background-color: var(--primary-color);
+  color: var(--background-darkest);
+}
+
+.project-option .project-hours {
+  color: var(--text-color-muted);
+}
+
+.project-info {
+  flex: 1;
+}
+
+.delete-project-btn {
+  padding: 10px;
+  background-color: var(--background-dark);
+  color: var(--text-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-project-btn:hover {
+  background-color: var(--accent-color);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.no-projects {
+  text-align: center;
+  padding: 20px;
+}
+
+input, textarea {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 10px;
+  background-color: var(--background-mid-dark);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
   color: var(--text-color);
 }
 
-.settings-btn {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 8px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.project-selection {
-  background-color: var(--background-mid-dark);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-}
-
-.project-list {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.project-item {
+.delete-btn, .cancel-btn {
+  padding: 10px 20px;
   background-color: var(--background-dark);
-  padding: 10px 15px;
+  color: var(--text-color);
+  border: none;
   border-radius: 5px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s;
 }
 
-.project-item:hover {
-  background-color: var(--primary-color);
-  color: white;
+.delete-btn:hover {
+  background-color: var(--accent-color);
 }
 
-.project-item.selected {
-  background-color: var(--primary-color);
-  color: white;
+.cancel-btn:hover {
+  background-color: var(--background-mid-dark);
 }
 </style>

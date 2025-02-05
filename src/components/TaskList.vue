@@ -138,6 +138,10 @@ onMounted(() => {
   max-width: 600px;
   margin: 0 auto;
   font-family: Arial, sans-serif;
+  background-color: var(--task-background, #2d3250);
+  padding: 20px;
+  border-radius: 10px;
+  color: var(--text-color);
 }
 
 .task-input {
@@ -150,6 +154,22 @@ onMounted(() => {
 .task-input button {
   padding: 10px;
   margin-right: 10px;
+  background-color: var(--background-mid-dark);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+}
+
+.task-input button {
+  background-color: var(--primary-color);
+  color: var(--background-darkest);
+  cursor: pointer;
+}
+
+.task-input button:disabled {
+  background-color: var(--background-darker);
+  color: var(--text-muted);
+  cursor: not-allowed;
 }
 
 .task-filters {
@@ -161,6 +181,11 @@ onMounted(() => {
 .task-filters button {
   margin: 0 10px;
   padding: 5px 10px;
+  background-color: var(--background-mid-dark);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
+  cursor: pointer;
 }
 
 .task-list {
@@ -176,6 +201,8 @@ onMounted(() => {
   margin: 10px 0;
   border-radius: 5px;
   transition: background-color 0.3s;
+  background-color: var(--background-darker);
+  border: 1px solid var(--border-color);
 }
 
 .task-content {
@@ -193,22 +220,25 @@ onMounted(() => {
   font-size: 0.8em;
   padding: 2px 5px;
   border-radius: 3px;
-  background-color: #f0f0f0;
+  background-color: var(--background-mid-dark);
+  color: var(--text-color);
 }
 
 .points {
   font-weight: bold;
-  color: #4CAF50;
+  color: var(--primary-color);
 }
 
 .remove-btn {
-  background: none;
+  background-color: var(--accent-color);
+  color: var(--text-color);
   border: none;
-  color: red;
+  border-radius: 5px;
+  padding: 5px 10px;
   cursor: pointer;
 }
 
-.trabalho { background-color: #e6f2ff; }
-.pessoal { background-color: #fff2e6; }
-.estudo { background-color: #e6ffe6; }
+input[type="checkbox"] {
+  accent-color: var(--primary-color);
+}
 </style>
