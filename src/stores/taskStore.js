@@ -17,9 +17,24 @@ const DEFAULT_CATEGORIES = [
 const loadTasks = () => {
   try {
     const savedTasks = localStorage.getItem(STORAGE_KEY)
-    return savedTasks ? JSON.parse(savedTasks) : []
+    let tasks = savedTasks ? JSON.parse(savedTasks) : []
+    
+    // Filtrar tarefas em branco
+    tasks = tasks.filter(task => 
+      task.title && task.title.trim() !== ''
+    )
+    
+    // Se ainda houver tarefas em branco, limpar completamente
+    if (tasks.length === 0) {
+      localStorage.removeItem(STORAGE_KEY)
+    } else {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks))
+    }
+    
+    return tasks
   } catch (error) {
     console.error('Erro ao carregar tarefas:', error)
+    localStorage.removeItem(STORAGE_KEY)
     return []
   }
 }
@@ -39,6 +54,7 @@ const loadStats = () => {
     }
   } catch (error) {
     console.error('Erro ao carregar estatísticas:', error)
+    localStorage.removeItem(STATS_KEY)
     return {
       totalTasksCompleted: 0,
       dailyStreak: 0,
@@ -59,7 +75,16 @@ export const useTaskStore = () => {
   // Salvar tarefas no localStorage
   const saveTasks = () => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks.value))
+      // Filtrar tarefas em branco antes de salvar
+      const validTasks = tasks.value.filter(task => 
+        task.title && task.title.trim() !== ''
+      )
+      
+      if (validTasks.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(validTasks))
+      } else {
+        localStorage.removeItem(STORAGE_KEY)
+      }
     } catch (error) {
       console.error('Erro ao salvar tarefas:', error)
     }

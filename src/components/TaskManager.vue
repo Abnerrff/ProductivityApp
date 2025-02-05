@@ -25,6 +25,7 @@
         <option value="Difícil">Difícil</option>
       </select>
       <button @click="addNewTask" class="add-task-btn">Adicionar</button>
+      <button @click="removeBlankTasks" class="remove-blank-btn">Limpar Vazias</button>
     </div>
 
     <div class="task-stats">
@@ -74,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 
 const { 
@@ -107,6 +108,20 @@ const addNewTask = () => {
     newTaskDifficulty.value = 'Média'
   }
 }
+
+const removeBlankTasks = () => {
+  const blankTasks = tasks.value.filter(task => 
+    !task.title || task.title.trim() === ''
+  )
+  
+  blankTasks.forEach(blankTask => {
+    removeTask(blankTask.id)
+  })
+}
+
+onMounted(() => {
+  removeBlankTasks()
+})
 </script>
 
 <style scoped>
@@ -164,13 +179,18 @@ const addNewTask = () => {
   border-radius: 4px;
 }
 
-.add-task-btn {
+.add-task-btn, .remove-blank-btn {
   padding: 10px 15px;
   background-color: var(--primary-color);
   color: var(--background-darkest);
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.remove-blank-btn {
+  background-color: var(--accent-color);
+  margin-left: 10px;
 }
 
 .task-stats {
