@@ -110,6 +110,8 @@ export const useTaskStore = () => {
       createdAt: new Date().toISOString()
     }
     
+    console.log('Nova tarefa criada:', newTask)
+    
     tasks.value.push(newTask)
     
     // Atualizar contagem de categorias
@@ -154,10 +156,15 @@ export const useTaskStore = () => {
         completed: !updatedTasks[taskIndex].completed
       }
       
+      console.log('Task details:', {
+        id: updatedTasks[taskIndex].id,
+        title: updatedTasks[taskIndex].title,
+        difficulty: updatedTasks[taskIndex].difficulty,
+        completed: updatedTasks[taskIndex].completed
+      })
+      
       // Atualizar o array de tarefas
       tasks.value = updatedTasks
-      
-      console.log('Task toggled:', updatedTasks[taskIndex])
       
       // Calcular pontos baseado na dificuldade
       const pointsMap = {
@@ -182,8 +189,6 @@ export const useTaskStore = () => {
       
       saveTasks()
       saveStats()
-      
-      console.log('Updated tasks:', tasks.value)
     } else {
       console.error('Task not found with ID:', taskId)
     }

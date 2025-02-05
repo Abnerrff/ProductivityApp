@@ -209,6 +209,24 @@ const handleComponentError = (error) => {
   color: var(--text-color);
   box-shadow: var(--shadow-subtle);
   border: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.sidebar-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), transparent);
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.sidebar-item:hover::before {
+  opacity: 1;
 }
 
 .sidebar-item:hover {
@@ -222,6 +240,11 @@ const handleComponentError = (error) => {
   color: var(--background-darkest);
   box-shadow: var(--shadow-strong);
   border-color: rgba(255,255,255,0.6);
+}
+
+.sidebar-item.active::before {
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.6), transparent);
+  opacity: 1;
 }
 
 .sidebar-icon {

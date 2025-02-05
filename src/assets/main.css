@@ -77,7 +77,7 @@ body {
   left: 0;
   width: 4px;
   height: 100%;
-  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.4), transparent);
   transition: all 0.3s ease;
   opacity: 0;
 }
@@ -95,23 +95,96 @@ body {
 .task-item.completed-task {
   opacity: 0.7;
   background-color: #1C1C1C;
-  box-shadow: 0 3px 6px rgba(255,255,255,0.05);
+  border-left: 4px solid #39FF14;  /* Verde neon */
+  box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
 }
 
-.task-item.completed-task::before {
-  background: linear-gradient(to bottom, transparent, rgba(76, 175, 80, 0.5), transparent);
+.task-item.completed-task .task-text {
+  text-decoration: line-through;
+  opacity: 0.6;
 }
 
-.task-item .task-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+.task-item.difficulty-easy.completed-task .task-text {
+  color: #4CAF50 !important;  /* Verde vibrante */
 }
 
-.task-item:hover .task-actions {
-  opacity: 1;
+.task-item.difficulty-medium.completed-task .task-text {
+  color: #FFC107 !important;  /* Amarelo vibrante */
+}
+
+.task-item.difficulty-hard.completed-task .task-text {
+  color: #F44336 !important;  /* Vermelho vibrante */
+}
+
+.task-item.difficulty-easy {
+  border-left: 4px solid #4CAF50;
+}
+
+.task-item.difficulty-medium {
+  border-left: 4px solid #FFC107;
+}
+
+.task-item.difficulty-hard {
+  border-left: 4px solid #F44336;
+}
+
+.task-item.difficulty-easy {
+  border-left: 6px solid #4CAF50;  /* Verde - Fácil */
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.task-item.difficulty-easy.completed-task {
+  border-left-color: #81C784;  /* Verde claro */
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.task-item.difficulty-medium {
+  border-left: 6px solid #FFC107;  /* Amarelo - Médio */
+  box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+}
+
+.task-item.difficulty-medium.completed-task {
+  border-left-color: #FFD54F;  /* Amarelo claro */
+  background-color: rgba(255, 193, 7, 0.1);
+}
+
+.task-item.difficulty-hard {
+  border-left: 6px solid #F44336;  /* Vermelho - Difícil */
+  box-shadow: 0 0 10px rgba(244, 67, 54, 0.3);
+}
+
+.task-item.difficulty-hard.completed-task {
+  border-left-color: #E57373;  /* Vermelho claro */
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* Estilos de texto para diferentes dificuldades */
+.task-item.difficulty-easy .task-text {
+  color: #4CAF50;
+}
+
+.task-item.difficulty-medium .task-text {
+  color: #FFC107;
+}
+
+.task-item.difficulty-hard .task-text {
+  color: #F44336;
+}
+
+/* Estilos de checkbox para diferentes dificuldades */
+.task-item.difficulty-easy .task-checkbox input:checked {
+  background-color: #4CAF50;
+  border-color: #4CAF50;
+}
+
+.task-item.difficulty-medium .task-checkbox input:checked {
+  background-color: #FFC107;
+  border-color: #FFC107;
+}
+
+.task-item.difficulty-hard .task-checkbox input:checked {
+  background-color: #F44336;
+  border-color: #F44336;
 }
 
 /* Botões de ação com estilo moderno */
@@ -171,6 +244,7 @@ body {
 .task-text {
   color: var(--text-primary);
   font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .task-category {
