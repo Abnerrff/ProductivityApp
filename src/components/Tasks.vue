@@ -52,24 +52,29 @@
         v-for="task in taskStore.tasks.value" 
         :key="task.id"
         class="task-item"
-        :class="[
-          { 'completed-task': task.completed },
-          `difficulty-${task.difficulty.toLowerCase()}`
-        ]"
+        v-bind:class="{ 
+          'completed-task': task.completed, 
+          'difficulty-easy': task.difficulty === 'Fácil',
+          'difficulty-medium': task.difficulty === 'Média',
+          'difficulty-hard': task.difficulty === 'Difícil',
+          'debug-task': true 
+        }"
+        @click="() => console.log('Task classes:', task.difficulty, task.completed)"
       >
         <div class="task-checkbox">
           <input 
             type="checkbox" 
             v-model="task.completed"
-            @change="() => toggleTask(task.id)"
+            @change="() => {
+              console.log('Checkbox changed for task:', task);
+              toggleTask(task.id);
+            }"
           />
         </div>
         <div class="task-details">
           <span 
             class="task-text"
-            :class="{ 
-              'completed-task-text': task.completed 
-            }"
+            @click="() => console.log('Task text:', task.title, task.difficulty, task.completed)"
           >
             {{ task.title }}
           </span>

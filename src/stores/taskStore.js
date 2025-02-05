@@ -143,28 +143,22 @@ export const useTaskStore = () => {
   const toggleTask = (taskId) => {
     console.log('Toggling task with ID:', taskId)
     
-    // Encontrar o índice da tarefa em vez de usar find
+    // Encontrar a tarefa
     const taskIndex = tasks.value.findIndex(t => t.id === taskId)
     
     if (taskIndex !== -1) {
-      // Criar uma cópia do array para garantir reatividade
-      const updatedTasks = [...tasks.value]
-      
-      // Alternar o estado da tarefa
-      updatedTasks[taskIndex] = {
-        ...updatedTasks[taskIndex],
-        completed: !updatedTasks[taskIndex].completed
+      // Usar Vue.set ou modificação reativa
+      tasks.value[taskIndex] = {
+        ...tasks.value[taskIndex],
+        completed: !tasks.value[taskIndex].completed
       }
       
-      console.log('Task details:', {
-        id: updatedTasks[taskIndex].id,
-        title: updatedTasks[taskIndex].title,
-        difficulty: updatedTasks[taskIndex].difficulty,
-        completed: updatedTasks[taskIndex].completed
+      console.log('Task details AFTER toggle:', {
+        id: tasks.value[taskIndex].id,
+        title: tasks.value[taskIndex].title,
+        difficulty: tasks.value[taskIndex].difficulty,
+        completed: tasks.value[taskIndex].completed
       })
-      
-      // Atualizar o array de tarefas
-      tasks.value = updatedTasks
       
       // Calcular pontos baseado na dificuldade
       const pointsMap = {
@@ -173,7 +167,7 @@ export const useTaskStore = () => {
         'Difícil': 3
       }
       
-      const task = updatedTasks[taskIndex]
+      const task = tasks.value[taskIndex]
       
       if (task.completed) {
         // Incrementar estatísticas

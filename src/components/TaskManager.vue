@@ -20,9 +20,9 @@
         </option>
       </select>
       <select v-model="newTaskDifficulty" class="difficulty-select">
-        <option value="Fácil">Fácil</option>
-        <option value="Média">Média</option>
-        <option value="Difícil">Difícil</option>
+        <option v-for="difficulty in difficulties" :key="difficulty" :value="difficulty">
+          {{ difficulty }}
+        </option>
       </select>
       <button @click="addNewTask" class="add-task-btn">Adicionar</button>
       <button @click="removeBlankTasks" class="remove-blank-btn">Limpar Vazias</button>
@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useTaskStore } from '@/stores/taskStore'
 
 const { 
@@ -90,6 +90,11 @@ const {
 
 const newTaskTitle = ref('')
 const newTaskCategory = ref('Outros')
+const difficulties = [
+  'Fácil',
+  'Média', 
+  'Difícil'
+]
 const newTaskDifficulty = ref('Média')
 const selectedCategory = ref('Todos')
 
@@ -101,12 +106,20 @@ const filteredTasks = computed(() => {
 })
 
 const addNewTask = () => {
-  if (newTaskTitle.value.trim()) {
-    addTask(newTaskTitle.value, newTaskCategory.value, newTaskDifficulty.value)
-    newTaskTitle.value = ''
-    newTaskCategory.value = 'Outros'
-    newTaskDifficulty.value = 'Média'
+  if (!newTaskTitle.value.trim()) {
+    alert('Por favor, insira um título para a tarefa')
+    return
   }
+
+  addTask(
+    newTaskTitle.value, 
+    newTaskCategory.value, 
+    newTaskDifficulty.value
+  )
+
+  // Resetar valores após adicionar tarefa
+  newTaskTitle.value = ''
+  newTaskDifficulty.value = 'Média'
 }
 
 const removeBlankTasks = () => {
@@ -118,6 +131,10 @@ const removeBlankTasks = () => {
     removeTask(blankTask.id)
   })
 }
+
+watch(newTaskDifficulty, (newValue) => {
+  console.log('New task difficulty:', newValue)
+})
 
 onMounted(() => {
   removeBlankTasks()

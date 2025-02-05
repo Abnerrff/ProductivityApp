@@ -92,30 +92,44 @@ body {
   background-color: #1A1A1A;
 }
 
-.task-item.completed-task {
-  opacity: 0.7;
-  background-color: #1C1C1C;
-  border-left: 4px solid #39FF14;  /* Verde neon */
-  box-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
-}
-
+/* Estilos para tarefas concluídas */
 .task-item.completed-task .task-text {
   text-decoration: line-through;
   opacity: 0.6;
 }
 
-.task-item.difficulty-easy.completed-task .task-text {
+/* 
+  !!!!! ATENÇÃO !!!!!
+  CORES DE DIFICULDADE FIXAS - NÃO MODIFICAR
+  Estas cores foram cuidadosamente escolhidas e não devem ser alteradas.
+  Qualquer mudança pode impactar negativamente a experiência do usuário.
+*/
+.task-item.completed-task.difficulty-easy .task-text {
   color: #4CAF50 !important;  /* Verde vibrante */
 }
 
-.task-item.difficulty-medium.completed-task .task-text {
+.task-item.completed-task.difficulty-medium .task-text {
   color: #FFC107 !important;  /* Amarelo vibrante */
 }
 
-.task-item.difficulty-hard.completed-task .task-text {
+.task-item.completed-task.difficulty-hard .task-text {
   color: #F44336 !important;  /* Vermelho vibrante */
 }
 
+/* Cores para tarefas não concluídas */
+.task-item.difficulty-easy .task-text {
+  color: #4CAF50;
+}
+
+.task-item.difficulty-medium .task-text {
+  color: #FFC107;
+}
+
+.task-item.difficulty-hard .task-text {
+  color: #F44336;
+}
+
+/* Cores específicas para tarefas concluídas de diferentes dificuldades */
 .task-item.difficulty-easy {
   border-left: 4px solid #4CAF50;
 }
@@ -128,6 +142,7 @@ body {
   border-left: 4px solid #F44336;
 }
 
+/* Bordas de dificuldade */
 .task-item.difficulty-easy {
   border-left: 6px solid #4CAF50;  /* Verde - Fácil */
   box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
@@ -244,7 +259,6 @@ body {
 .task-text {
   color: var(--text-primary);
   font-weight: 500;
-  transition: all 0.3s ease;
 }
 
 .task-category {
@@ -281,3 +295,5 @@ body {
 .fade-in {
   animation: fadeIn 0.5s ease forwards;
 }
+
+/* Removido estilo de ícones da sidebar */
