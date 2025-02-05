@@ -114,9 +114,25 @@ export const useTaskStore = () => {
 
   // Alternar status da tarefa
   const toggleTask = (taskId) => {
-    const task = tasks.value.find(t => t.id === taskId)
-    if (task) {
-      task.completed = !task.completed
+    console.log('Toggling task with ID:', taskId)
+    
+    // Encontrar o índice da tarefa em vez de usar find
+    const taskIndex = tasks.value.findIndex(t => t.id === taskId)
+    
+    if (taskIndex !== -1) {
+      // Criar uma cópia do array para garantir reatividade
+      const updatedTasks = [...tasks.value]
+      
+      // Alternar o estado da tarefa
+      updatedTasks[taskIndex] = {
+        ...updatedTasks[taskIndex],
+        completed: !updatedTasks[taskIndex].completed
+      }
+      
+      // Atualizar o array de tarefas
+      tasks.value = updatedTasks
+      
+      console.log('Task toggled:', updatedTasks[taskIndex])
       
       // Calcular pontos baseado na dificuldade
       const pointsMap = {
@@ -124,6 +140,8 @@ export const useTaskStore = () => {
         'Média': 2,
         'Difícil': 3
       }
+      
+      const task = updatedTasks[taskIndex]
       
       if (task.completed) {
         // Incrementar estatísticas
@@ -139,6 +157,10 @@ export const useTaskStore = () => {
       
       saveTasks()
       saveStats()
+      
+      console.log('Updated tasks:', tasks.value)
+    } else {
+      console.error('Task not found with ID:', taskId)
     }
   }
 
@@ -146,6 +168,40 @@ export const useTaskStore = () => {
   const reorderTasks = (newOrder) => {
     tasks.value = newOrder
     saveTasks()
+  }
+
+  // Redefinir tarefas diariamente
+  const resetDailyTasks = () => {
+    const today = new Date().toISOString().split('T')[0]
+    const lastResetDate = localStorage.getItem('lastTaskResetDate')
+
+    if (lastResetDate !== today) {
+      // Desmarcar todas as tarefas
+      tasks.value.forEach(task => {
+        task.completed = false
+      })
+
+      // Redefinir streak se necessário
+      const currentDate = new Date()
+      const lastStreakDate = new Date(localStorage.getItem('lastStreakDate') || 0)
+      const daysDifference = Math.floor((currentDate - lastStreakDate) / (1000 * 60 * 60 * 24))
+
+      if (daysDifference > 1) {
+        // Quebrar a streak se mais de um dia se passou
+        stats.value.dailyStreak = 0
+      } else {
+        // Incrementar streak
+        stats.value.dailyStreak++
+      }
+
+      // Atualizar data do último reset e streak
+      localStorage.setItem('lastTaskResetDate', today)
+      localStorage.setItem('lastStreakDate', currentDate.toISOString())
+
+      // Salvar mudanças
+      saveTasks()
+      saveStats()
+    }
   }
 
   // Computar estatísticas
@@ -172,6 +228,8 @@ export const useTaskStore = () => {
     taskStats,
     filterTasksByCategory,
     reorderTasks,
-    categories: DEFAULT_CATEGORIES
+    resetDailyTasks,
+    categories: DEFAULT_CATEGORIES,
+    stats
   }
 }

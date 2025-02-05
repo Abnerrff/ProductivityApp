@@ -1,181 +1,209 @@
 :root {
-  /* Paleta Moderna - Noir Elegante */
-  --color-black-900: #0A0A0A;    /* Preto profundo */
-  --color-black-800: #121212;    /* Preto de fundo principal */
-  --color-black-700: #1E1E1E;    /* Preto de componentes */
-  --color-black-600: #2A2A2A;    /* Preto médio */
+  /* Paleta de cores ultra escura sem azul */
+  --bg-primary: #0A0A0A;           /* Preto mais profundo */
+  --bg-secondary: #121212;         /* Preto de fundo */
+  --bg-tertiary: #1C1C1C;          /* Preto de componentes */
+  --text-primary: #E0E0E0;         /* Cinza claro para texto */
+  --text-secondary: #A0A0A0;       /* Cinza médio para texto secundário */
+  --accent-color: #2C2C2C;         /* Cinza escuro para acentos */
+  --accent-color-light: #3C3C3C;   /* Cinza médio claro */
+  --completed-bg: rgba(44, 44, 44, 0.2); /* Fundo de tarefa concluída */
+  --border-color: #1E1E1E;         /* Cor de borda */
   
-  /* Tons de Cinza */
-  --color-gray-500: #4A4A4A;     /* Cinza escuro */
-  --color-gray-400: #6A6A6A;     /* Cinza médio */
-  --color-gray-300: #8C8C8C;     /* Cinza claro */
-  --color-gray-200: #ACACAC;     /* Cinza muito claro */
+  /* Espaçamentos e transições */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
   
-  /* Tons de Branco */
-  --color-white-100: #F5F5F5;    /* Branco off */
-  --color-white-200: #FFFFFF;    /* Branco puro */
+  --transition-speed: 0.2s;
   
-  /* Cores de Acento */
-  --color-accent-silver: #C0C0C0; /* Prata */
-  --color-accent-charcoal: #36454F; /* Cinza carvão */
-  --color-accent-blue: #3498DB;    /* Azul suave */
-  --color-accent-green: #2ECC71;   /* Verde suave */
-
-  /* Variáveis de Tema Padrão (Modo Escuro) */
-  --background-darkest: var(--color-black-900);
-  --background-darker: var(--color-black-800);
-  --background-dark: var(--color-black-700);
-  --background-mid-dark: var(--color-black-600);
+  /* Variáveis de Sombra Aprimoradas */
+  --shadow-subtle: 0 2px 4px rgba(0,0,0,0.15);
+  --shadow-medium: 0 4px 8px rgba(0,0,0,0.2);
+  --shadow-strong: 0 6px 12px rgba(0,0,0,0.25);
+  --shadow-intense: 0 8px 16px rgba(0,0,0,0.3);
   
-  --text-color: var(--color-white-100);
-  --text-color-muted: var(--color-gray-300);
-  
-  --primary-color: var(--color-white-200);
-  --secondary-color: var(--color-gray-500);
-  --accent-color: var(--color-accent-silver);
-  
-  --shadow-color: rgba(0,0,0,0.5);
-  --border-color: var(--color-black-600);
-
-  /* Cores específicas de componentes */
-  --sidebar-background: var(--color-black-700);
-  --content-background: var(--color-black-800);
-  --element-background: var(--color-black-600);
-  
-  /* Cores de Tarefas e Pomodoro */
-  --task-background: var(--color-black-800);
-  --pomodoro-background: var(--color-black-700);
+  /* Variáveis de Borda */
+  --border-color-subtle: rgba(255,255,255,0.05);
+  --border-color-medium: rgba(255,255,255,0.1);
+  --border-color-strong: rgba(255,255,255,0.15);
 }
 
-/* Tema Claro */
-.light-theme {
-  --background-darkest: var(--color-white-200);
-  --background-darker: var(--color-white-100);
-  --background-dark: var(--color-gray-200);
-  --background-mid-dark: var(--color-gray-300);
-  
-  --text-color: var(--color-black-900);
-  --text-color-muted: var(--color-gray-500);
-  
-  --primary-color: var(--color-black-900);
-  --secondary-color: var(--color-gray-400);
-  --accent-color: var(--color-accent-blue);
-  
-  --shadow-color: rgba(0,0,0,0.1);
-  --border-color: var(--color-gray-300);
-
-  /* Cores específicas de componentes */
-  --sidebar-background: var(--color-white-100);
-  --content-background: var(--color-white-200);
-  --element-background: var(--color-gray-200);
-  
-  /* Cores de Tarefas e Pomodoro */
-  --task-background: var(--color-white-100);
-  --pomodoro-background: var(--color-white-200);
-}
-
-/* Transição de tema */
-.theme-transition {
-  transition: 
-    background-color 0.3s ease,
-    color 0.3s ease,
-    border-color 0.3s ease;
-}
-
-/* Estilos base */
-body, html {
-  font-family: 'Inter', 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  background-color: var(--background-darkest);
-  color: var(--text-color);
-  line-height: 1.6;
+/* Reset e estilos base */
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  transition: all 0.3s ease;
-  letter-spacing: 0.5px;
+  transition: all var(--transition-speed) ease;
 }
 
-/* Scrollbar moderna */
-::-webkit-scrollbar {
-  width: 12px;
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.6;
 }
 
-::-webkit-scrollbar-track {
-  background: var(--background-darker);
+/* Contêiner de tarefas */
+.tasks-container {
+  max-width: 600px;
+  margin: 2rem auto;
+  background-color: #0A0A0A;  /* Preto mais profundo possível */
+  border-radius: 12px;
+  box-shadow: var(--shadow-medium);
+  padding: var(--spacing-lg);
+  border: 1px solid var(--border-color-medium);
+}
+
+/* Item de tarefa com design moderno */
+.task-item {
+  display: flex;
+  align-items: center;
+  background-color: #121212;  /* Preto de fundo */
   border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--secondary-color);
-  border-radius: 10px;
-  border: 3px solid var(--background-darker);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-color);
-}
-
-/* Elementos interativos */
-input, 
-select, 
-button, 
-textarea {
-  background-color: var(--background-mid-dark);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 10px;
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(255,255,255,0.05);
 }
 
-input:focus, 
-select:focus, 
-button:focus, 
-textarea:focus {
-  outline: none;
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px rgba(192, 192, 192, 0.2);
+.task-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2), transparent);
+  transition: all 0.3s ease;
+  opacity: 0;
 }
 
-button {
+.task-item:hover::before {
+  opacity: 1;
+}
+
+.task-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(255,255,255,0.1);
+  background-color: #1A1A1A;
+}
+
+.task-item.completed-task {
+  opacity: 0.7;
+  background-color: #1C1C1C;
+  box-shadow: 0 3px 6px rgba(255,255,255,0.05);
+}
+
+.task-item.completed-task::before {
+  background: linear-gradient(to bottom, transparent, rgba(76, 175, 80, 0.5), transparent);
+}
+
+.task-item .task-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.task-item:hover .task-actions {
+  opacity: 1;
+}
+
+/* Botões de ação com estilo moderno */
+.task-actions button {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.6);
+  padding: var(--spacing-xs);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.task-actions button:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.9);
+  transform: scale(1.1);
+}
+
+/* Checkbox */
+.task-checkbox input {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent-color);
+  border-radius: 4px;
+  margin-right: var(--spacing-md);
   cursor: pointer;
+  position: relative;
+  background-color: var(--bg-secondary);
+}
+
+.task-checkbox input:checked {
+  background-color: var(--accent-color);
+  border-color: var(--accent-color-light);
+}
+
+.task-checkbox input:checked::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+/* Detalhes da tarefa */
+.task-details {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-text {
+  color: var(--text-primary);
   font-weight: 500;
 }
 
-button:hover {
-  background-color: var(--background-dark);
+.task-category {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-top: var(--spacing-xs);
 }
 
 /* Responsividade */
-@media (max-width: 768px) {
-  body {
-    font-size: 14px;
+@media (max-width: 600px) {
+  .tasks-container {
+    margin: 1rem;
+    padding: var(--spacing-md);
+  }
+  
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .task-actions {
+    width: 100%;
+    justify-content: flex-end;
+    margin-top: var(--spacing-sm);
   }
 }
 
-/* Animações sutis */
+/* Animações */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .fade-in {
-  animation: fadeIn 0.5s ease-in-out;
-}
-
-/* Estilos específicos para tema claro */
-.light-theme {
-  /* Ajustes para melhor legibilidade no tema claro */
-  input, 
-  select, 
-  button, 
-  textarea {
-    background-color: var(--content-background);
-    border-color: var(--border-color);
-    color: var(--text-color);
-  }
-
-  button:hover {
-    background-color: var(--background-mid-dark);
-  }
+  animation: fadeIn 0.5s ease forwards;
 }

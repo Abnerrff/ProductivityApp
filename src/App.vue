@@ -181,6 +181,8 @@ const handleComponentError = (error) => {
   color: var(--text-color);
   min-height: calc(100vh - 100px);
   overflow-y: auto;
+  box-shadow: var(--shadow-medium);
+  border: none;
 }
 
 .sidebar {
@@ -201,19 +203,25 @@ const handleComponentError = (error) => {
   margin: 5px 10px;
   cursor: pointer;
   border-radius: 8px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, box-shadow 0.3s, border 0.3s;
   background-color: var(--background-mid-dark);
   width: calc(100% - 40px);
   color: var(--text-color);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 .sidebar-item:hover {
   background-color: var(--background-dark);
+  box-shadow: var(--shadow-medium);
+  border-color: rgba(255,255,255,0.4);
 }
 
 .sidebar-item.active {
   background-color: var(--primary-color);
   color: var(--background-darkest);
+  box-shadow: var(--shadow-strong);
+  border-color: rgba(255,255,255,0.6);
 }
 
 .sidebar-icon {

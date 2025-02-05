@@ -114,9 +114,11 @@ const addNewTask = () => {
   max-width: 600px;
   margin: 0 auto;
   padding: 20px;
-  background-color: var(--task-background, #2d3250);
+  background-color: var(--background-darkest);
   border-radius: 8px;
   color: var(--text-color);
+  box-shadow: var(--shadow-medium);
+  border: 1px solid var(--border-color-medium);
 }
 
 .task-header {
@@ -143,8 +145,15 @@ const addNewTask = () => {
   padding: 10px;
   background-color: var(--background-mid-dark);
   color: var(--text-color);
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--border-color-subtle);
   border-radius: 4px;
+  box-shadow: var(--shadow-subtle);
+  transition: box-shadow 0.3s, border-color 0.3s;
+}
+
+.task-input:focus {
+  border-color: var(--border-color-medium);
+  box-shadow: var(--shadow-medium);
 }
 
 .category-select, .difficulty-select {
