@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import TaskManager from '@/components/TaskManager.vue'
 import Pomodoro from '@/components/Pomodoro.vue'
 import Settings from '@/components/Settings.vue'
+import Agenda from '@/components/Agenda.vue'
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
     path: '/settings',
     name: 'Settings',
     component: Settings
+  },
+  {
+    path: '/agenda',
+    name: 'Agenda',
+    component: Agenda
   }
 ]
 
