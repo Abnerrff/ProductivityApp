@@ -8,6 +8,9 @@ import Gamification from './components/Gamification.vue'
 import Settings from './components/Settings.vue'
 import TaskStatistics from './components/TaskStatistics.vue'
 import Pomodoro from './components/Pomodoro.vue'
+import Agenda from './components/Agenda.vue'
+import Projects from './components/Projects.vue'
+import Calendar from './components/Calendar.vue'
 
 console.log(' App.vue: Módulo carregado')
 
@@ -45,16 +48,22 @@ const currentComponent = shallowRef(null)
 
 const sidebarItems = [
   { id: 'tasks', label: 'Tarefas' },
+  { id: 'projects', label: 'Projetos' },
   { id: 'statistics', label: 'Estatísticas' },
   { id: 'gamification', label: 'Conquistas' },
+  { id: 'agenda', label: 'Agenda' },
+  { id: 'calendar', label: 'Calendário' },
   { id: 'pomodoro', label: 'Pomodoro' },
   { id: 'settings', label: 'Configurações' }
 ]
 
 const componentMap = {
   'tasks': TaskManager,
+  'projects': Projects,
   'statistics': TaskStatistics,
   'gamification': Gamification,
+  'agenda': Agenda,
+  'calendar': Calendar,
   'pomodoro': Pomodoro,
   'settings': Settings
 }
@@ -62,8 +71,11 @@ const componentMap = {
 const getIconForItem = (itemId) => {
   const iconMap = {
     'tasks': 'list-check',
+    'projects': 'project-diagram',
     'statistics': 'chart-simple',
     'gamification': 'trophy',
+    'agenda': 'calendar-alt',
+    'calendar': 'calendar',
     'pomodoro': 'clock',
     'settings': 'gear'
   }
