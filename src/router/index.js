@@ -4,7 +4,6 @@ import Pomodoro from '@/components/Pomodoro.vue'
 import Settings from '@/components/Settings.vue'
 import Agenda from '@/components/Agenda.vue'
 import Projects from '@/components/Projects.vue'
-import Calendar from '@/components/Calendar.vue'
 
 const routes = [
   {
@@ -36,11 +35,6 @@ const routes = [
     path: '/agenda',
     name: 'Agenda',
     component: Agenda
-  },
-  {
-    path: '/calendar',
-    name: 'Calendar',
-    component: Calendar
   }
 ]
 

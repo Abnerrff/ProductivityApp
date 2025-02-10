@@ -1,15 +1,30 @@
 <template>
   <div class="agenda-container">
     <div class="agenda-header">
-      <h2>Minha Agenda</h2>
+      <h2>Agenda e Calendário</h2>
       <div class="agenda-actions">
         <button @click="openNewEventModal" class="add-event-btn">
           + Novo Evento
         </button>
+        <div class="view-toggle">
+          <button 
+            @click="currentView = 'calendar'"
+            :class="{ active: currentView === 'calendar' }"
+          >
+            Calendário
+          </button>
+          <button 
+            @click="currentView = 'list'"
+            :class="{ active: currentView === 'list' }"
+          >
+            Lista
+          </button>
+        </div>
       </div>
     </div>
 
-    <div class="calendar-view">
+    <!-- Visualização de Calendário -->
+    <div v-if="currentView === 'calendar'" class="calendar-view">
       <div class="calendar-navigation">
         <button @click="previousMonth">&lt;</button>
         <h3>{{ currentMonthYear }}</h3>
@@ -43,6 +58,36 @@
       </div>
     </div>
 
+    <!-- Visualização de Lista -->
+    <div v-else-if="currentView === 'list'" class="agenda-list-view">
+      <div 
+        v-for="(dayEvents, date) in groupedEvents" 
+        :key="date" 
+        class="agenda-list-day"
+      >
+        <h4>{{ formatListDate(date) }}</h4>
+        <div 
+          v-for="event in dayEvents" 
+          :key="event.id" 
+          class="agenda-list-event"
+        >
+          <div class="event-time">{{ formatTime(event.startTime) }}</div>
+          <div class="event-details">
+            <span 
+              class="event-color-dot" 
+              :style="{ backgroundColor: getEventColor(event) }"
+            ></span>
+            <span class="event-title">{{ event.title }}</span>
+            <span class="event-location">{{ event.location || 'Sem local' }}</span>
+          </div>
+          <div class="event-actions">
+            <button @click="editEvent(event)">Editar</button>
+            <button @click="deleteEvent(event)">Excluir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal de Novo Evento -->
     <div v-if="showNewEventModal" class="modal">
       <div class="modal-content">
@@ -54,44 +99,58 @@
               v-model="newEvent.title" 
               type="text" 
               required 
-            />
+              placeholder="Nome do evento"
+            >
           </div>
-
           <div class="form-group">
-            <label>Descrição</label>
-            <textarea 
-              v-model="newEvent.description"
-            ></textarea>
-          </div>
-
-          <div class="form-group">
-            <label>Data Início</label>
+            <label>Data</label>
             <input 
-              v-model="newEvent.start_time" 
-              type="datetime-local" 
-              required 
-            />
+              v-model="newEvent.date" 
+              type="date" 
+              required
+            >
           </div>
-
           <div class="form-group">
-            <label>Data Fim</label>
+            <label>Hora de Início</label>
             <input 
-              v-model="newEvent.end_time" 
-              type="datetime-local" 
-              required 
-            />
+              v-model="newEvent.startTime" 
+              type="time"
+            >
           </div>
-
+          <div class="form-group">
+            <label>Hora de Término</label>
+            <input 
+              v-model="newEvent.endTime" 
+              type="time"
+            >
+          </div>
           <div class="form-group">
             <label>Local</label>
             <input 
               v-model="newEvent.location" 
               type="text" 
-            />
+              placeholder="Local do evento (opcional)"
+            >
           </div>
-
-          <div class="form-actions">
-            <button type="submit">Salvar</button>
+          <div class="form-group">
+            <label>Cor do Evento</label>
+            <select v-model="newEvent.color">
+              <option value="#FF6B6B">Vermelho</option>
+              <option value="#4ECDC4">Verde</option>
+              <option value="#45B7D1">Azul</option>
+              <option value="#FDCB6E">Amarelo</option>
+              <option value="#6C5CE7">Roxo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Descrição</label>
+            <textarea 
+              v-model="newEvent.description" 
+              placeholder="Detalhes do evento (opcional)"
+            ></textarea>
+          </div>
+          <div class="modal-actions">
+            <button type="submit">Salvar Evento</button>
             <button type="button" @click="closeNewEventModal">Cancelar</button>
           </div>
         </form>
@@ -101,155 +160,152 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import api from '@/services/api'
+import { ref, onMounted, computed } from 'vue'
+import { format, addMonths, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, parseISO } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
-// Estado da agenda
-const events = ref([])
+// Estado do componente
 const currentDate = ref(new Date())
+const currentView = ref('calendar')
 const showNewEventModal = ref(false)
+const events = ref([])
 
 // Novo evento
 const newEvent = ref({
   title: '',
-  description: '',
-  start_time: '',
-  end_time: '',
-  location: ''
+  date: '',
+  startTime: '',
+  endTime: '',
+  location: '',
+  color: '#FF6B6B',
+  description: ''
 })
 
-// Navegação do calendário
-const currentMonthYear = computed(() => {
-  return currentDate.value.toLocaleString('default', { 
-    month: 'long', 
-    year: 'numeric' 
-  })
-})
+// Computados
+const currentMonthYear = computed(() => 
+  format(currentDate.value, 'MMMM yyyy', { locale: ptBR })
+)
 
-// Gerar dias do calendário
 const calendarDays = computed(() => {
-  const year = currentDate.value.getFullYear()
-  const month = currentDate.value.getMonth()
+  const monthStart = startOfMonth(currentDate.value)
+  const monthEnd = endOfMonth(currentDate.value)
   
-  const firstDayOfMonth = new Date(year, month, 1)
-  const lastDayOfMonth = new Date(year, month + 1, 0)
-  
-  const days = []
-  
-  // Dias do mês anterior
-  for (let i = 0; i < firstDayOfMonth.getDay(); i++) {
-    days.push({ 
-      dayNumber: null, 
-      isCurrentMonth: false,
-      events: []
-    })
-  }
-  
-  // Dias do mês atual
-  for (let day = 1; day <= lastDayOfMonth.getDate(); day++) {
-    const currentDay = new Date(year, month, day)
-    const dayEvents = events.value.filter(event => {
-      const eventDate = new Date(event.start_time)
-      return eventDate.toDateString() === currentDay.toDateString()
-    })
-    
-    days.push({ 
-      dayNumber: day, 
-      date: currentDay,
-      isCurrentMonth: true,
-      events: dayEvents
-    })
-  }
+  const days = eachDayOfInterval({ start: monthStart, end: monthEnd }).map(date => ({
+    date: date,
+    dayNumber: date.getDate(),
+    isCurrentMonth: date.getMonth() === currentDate.value.getMonth(),
+    events: events.value.filter(event => 
+      new Date(event.date).toDateString() === date.toDateString()
+    )
+  }))
   
   return days
 })
 
+const groupedEvents = computed(() => {
+  return events.value.reduce((acc, event) => {
+    if (!acc[event.date]) {
+      acc[event.date] = []
+    }
+    acc[event.date].push(event)
+    return acc
+  }, {})
+})
+
 // Métodos de navegação
 const previousMonth = () => {
-  currentDate.value = new Date(
-    currentDate.value.getFullYear(), 
-    currentDate.value.getMonth() - 1, 
-    1
-  )
-  fetchEvents()
+  currentDate.value = subMonths(currentDate.value, 1)
 }
 
 const nextMonth = () => {
-  currentDate.value = new Date(
-    currentDate.value.getFullYear(), 
-    currentDate.value.getMonth() + 1, 
-    1
-  )
-  fetchEvents()
+  currentDate.value = addMonths(currentDate.value, 1)
 }
 
-// Buscar eventos da API
+// Métodos de eventos
 const fetchEvents = async () => {
   try {
-    const startDate = new Date(
-      currentDate.value.getFullYear(), 
-      currentDate.value.getMonth(), 
-      1
-    )
-    const endDate = new Date(
-      currentDate.value.getFullYear(), 
-      currentDate.value.getMonth() + 1, 
-      0
-    )
-
-    const response = await api.get('/events/', {
-      params: {
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString()
+    // Simular busca de eventos
+    events.value = [
+      {
+        id: '1',
+        title: 'Reunião de Projeto',
+        date: '2024-02-15',
+        startTime: '14:00',
+        endTime: '15:30',
+        location: 'Sala de Reuniões',
+        color: '#4ECDC4',
+        description: 'Revisão do progresso do projeto'
+      },
+      {
+        id: '2',
+        title: 'Almoço com Cliente',
+        date: '2024-02-20',
+        startTime: '12:30',
+        endTime: '14:00',
+        location: 'Restaurante Central',
+        color: '#FF6B6B',
+        description: 'Discutir novos requisitos'
       }
-    })
-    
-    events.value = response.data
+    ]
   } catch (error) {
     console.error('Erro ao buscar eventos:', error)
   }
 }
 
-// Criar novo evento
-const createEvent = async () => {
-  try {
-    const response = await api.post('/events/', newEvent.value)
-    events.value.push(response.data)
-    closeNewEventModal()
-    fetchEvents()
-  } catch (error) {
-    console.error('Erro ao criar evento:', error)
+const createEvent = () => {
+  const eventToAdd = {
+    ...newEvent.value,
+    id: String(events.value.length + 1)
   }
+  events.value.push(eventToAdd)
+  closeNewEventModal()
 }
 
-// Métodos de modal
+const editEvent = (event) => {
+  // Implementar lógica de edição
+  console.log('Editando evento:', event)
+}
+
+const deleteEvent = (event) => {
+  events.value = events.value.filter(e => e.id !== event.id)
+}
+
 const openNewEventModal = () => {
   showNewEventModal.value = true
+  // Resetar novo evento
+  newEvent.value = {
+    title: '',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    startTime: '',
+    endTime: '',
+    location: '',
+    color: '#FF6B6B',
+    description: ''
+  }
 }
 
 const closeNewEventModal = () => {
   showNewEventModal.value = false
-  newEvent.value = {
-    title: '',
-    description: '',
-    start_time: '',
-    end_time: '',
-    location: ''
-  }
 }
 
-// Selecionar dia
 const selectDay = (day) => {
   if (day.isCurrentMonth) {
-    // Lógica para mostrar detalhes do dia
-    console.log('Dia selecionado:', day)
+    newEvent.value.date = format(day.date, 'yyyy-MM-dd')
+    openNewEventModal()
   }
 }
 
-// Utilitários
 const getEventColor = (event) => {
-  // Lógica para definir cor do evento
-  return '#3498db'  // Cor padrão
+  return event.color || '#FF6B6B'
+}
+
+// Utilitários de formatação
+const formatListDate = (dateString) => {
+  return format(parseISO(dateString), 'dd/MM/yyyy (EEEE)', { locale: ptBR })
+}
+
+const formatTime = (timeString) => {
+  return timeString || 'Sem horário'
 }
 
 // Carregar eventos ao montar
@@ -260,9 +316,11 @@ onMounted(() => {
 
 <style scoped>
 .agenda-container {
-  background-color: var(--bg-secondary);
+  max-width: 1200px;
+  margin: 0 auto;
   padding: 20px;
-  border-radius: 16px;
+  background-color: var(--background-darker);
+  border-radius: 10px;
 }
 
 .agenda-header {
@@ -272,13 +330,41 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
+.agenda-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 .add-event-btn {
   background-color: var(--primary-color);
-  color: var(--text-color);
+  color: white;
   border: none;
   padding: 10px 15px;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-toggle {
+  display: flex;
+  background-color: var(--background-mid-dark);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.view-toggle button {
+  padding: 8px 15px;
+  background: none;
+  border: none;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-toggle button.active {
+  background-color: var(--primary-color);
+  color: white;
 }
 
 .calendar-navigation {
@@ -295,20 +381,25 @@ onMounted(() => {
 }
 
 .calendar-day {
-  background-color: var(--bg-primary);
-  border-radius: 8px;
+  border: 1px solid var(--border-color);
   padding: 10px;
   text-align: center;
+  background-color: var(--background-mid-dark);
+  border-radius: 5px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s;
+}
+
+.calendar-day:hover {
+  background-color: var(--background-dark);
 }
 
 .calendar-day.current-month {
-  background-color: var(--bg-tertiary);
+  background-color: var(--background-dark);
 }
 
 .calendar-day.has-events {
-  border: 2px solid var(--primary-color);
+  border-color: var(--primary-color);
 }
 
 .day-events {
@@ -322,6 +413,75 @@ onMounted(() => {
   height: 8px;
   border-radius: 50%;
   margin: 0 2px;
+}
+
+.agenda-list-view {
+  background-color: var(--background-mid-dark);
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.agenda-list-day {
+  margin-bottom: 20px;
+}
+
+.agenda-list-day h4 {
+  margin-bottom: 10px;
+  color: var(--text-color-light);
+}
+
+.agenda-list-event {
+  display: flex;
+  align-items: center;
+  background-color: var(--background-dark);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.event-time {
+  flex: 0 0 80px;
+  color: var(--text-color-light);
+}
+
+.event-details {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+}
+
+.event-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 10px;
+}
+
+.event-title {
+  margin-right: 10px;
+}
+
+.event-location {
+  color: var(--text-color-light);
+}
+
+.event-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.event-actions button {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 5px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.event-actions button:hover {
+  background-color: var(--background-mid-dark);
 }
 
 .modal {
@@ -338,11 +498,13 @@ onMounted(() => {
 }
 
 .modal-content {
-  background-color: var(--bg-tertiary);
+  background-color: var(--background-darker);
+  border-radius: 10px;
   padding: 30px;
-  border-radius: 16px;
   width: 500px;
   max-width: 90%;
+  max-height: 90%;
+  overflow-y: auto;
 }
 
 .form-group {
@@ -352,37 +514,41 @@ onMounted(() => {
 .form-group label {
   display: block;
   margin-bottom: 5px;
+  color: var(--text-color-light);
 }
 
 .form-group input,
+.form-group select,
 .form-group textarea {
   width: 100%;
   padding: 10px;
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  background-color: var(--bg-primary);
+  border-radius: 5px;
+  background-color: var(--background-mid-dark);
   color: var(--text-color);
 }
 
-.form-actions {
+.modal-actions {
   display: flex;
   justify-content: space-between;
+  margin-top: 20px;
 }
 
-.form-actions button {
+.modal-actions button {
   padding: 10px 20px;
   border: none;
-  border-radius: 8px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s;
 }
 
-.form-actions button:first-child {
+.modal-actions button:first-child {
   background-color: var(--primary-color);
-  color: var(--text-color);
+  color: white;
 }
 
-.form-actions button:last-child {
-  background-color: var(--bg-primary);
-  color: var(--text-muted);
+.modal-actions button:last-child {
+  background-color: var(--background-mid-dark);
+  color: var(--text-color);
 }
 </style>
