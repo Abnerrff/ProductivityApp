@@ -83,6 +83,13 @@
           <div class="event-actions">
             <button @click="editEvent(event)">Editar</button>
             <button @click="deleteEvent(event)">Excluir</button>
+            <div 
+              class="event-status-badge" 
+              :class="event.status"
+              @click="toggleEventStatus(event)"
+            >
+              {{ event.status }}
+            </div>
           </div>
         </div>
       </div>
@@ -143,6 +150,14 @@
             </select>
           </div>
           <div class="form-group">
+            <label>Status do Evento</label>
+            <select v-model="newEvent.status">
+              <option value="pendente">Pendente</option>
+              <option value="confirmado">Confirmado</option>
+              <option value="concluído">Concluído</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label>Descrição</label>
             <textarea 
               v-model="newEvent.description" 
@@ -178,7 +193,8 @@ const newEvent = ref({
   endTime: '',
   location: '',
   color: '#FF6B6B',
-  description: ''
+  description: '',
+  status: 'pendente'
 })
 
 // Computados
@@ -234,7 +250,8 @@ const fetchEvents = async () => {
         endTime: '15:30',
         location: 'Sala de Reuniões',
         color: '#4ECDC4',
-        description: 'Revisão do progresso do projeto'
+        description: 'Revisão do progresso do projeto',
+        status: 'pendente'
       },
       {
         id: '2',
@@ -244,7 +261,8 @@ const fetchEvents = async () => {
         endTime: '14:00',
         location: 'Restaurante Central',
         color: '#FF6B6B',
-        description: 'Discutir novos requisitos'
+        description: 'Discutir novos requisitos',
+        status: 'confirmado'
       }
     ]
   } catch (error) {
@@ -255,7 +273,8 @@ const fetchEvents = async () => {
 const createEvent = () => {
   const eventToAdd = {
     ...newEvent.value,
-    id: String(events.value.length + 1)
+    id: String(events.value.length + 1),
+    status: newEvent.value.status || 'pendente'
   }
   events.value.push(eventToAdd)
   closeNewEventModal()
@@ -280,7 +299,8 @@ const openNewEventModal = () => {
     endTime: '',
     location: '',
     color: '#FF6B6B',
-    description: ''
+    description: '',
+    status: 'pendente'
   }
 }
 
@@ -297,6 +317,16 @@ const selectDay = (day) => {
 
 const getEventColor = (event) => {
   return event.color || '#FF6B6B'
+}
+
+const toggleEventStatus = (event) => {
+  const index = events.value.findIndex(e => e.id === event.id)
+  if (index !== -1) {
+    events.value[index] = {
+      ...events.value[index],
+      status: events.value[index].status === 'concluído' ? 'pendente' : 'concluído'
+    }
+  }
 }
 
 // Utilitários de formatação
@@ -484,17 +514,43 @@ onMounted(() => {
   background-color: var(--background-mid-dark);
 }
 
+.event-status-badge {
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.event-status-badge.pendente {
+  background-color: #FF6B6B;
+  color: white;
+}
+
+.event-status-badge.confirmado {
+  background-color: #4ECDC4;
+  color: white;
+}
+
+.event-status-badge.concluído {
+  background-color: #45B7D1;
+  color: white;
+  text-decoration: line-through;
+}
+
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  backdrop-filter: blur(5px);
 }
 
 .modal-content {
@@ -505,6 +561,27 @@ onMounted(() => {
   max-width: 90%;
   max-height: 90%;
   overflow-y: auto;
+  box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+  border: 2px solid var(--primary-color);
+  position: relative;
+  transform: scale(1);
+  transition: all 0.3s ease;
+}
+
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  right: -5px;
+  bottom: -5px;
+  background: linear-gradient(45deg, 
+    rgba(var(--primary-color-rgb), 0.1), 
+    rgba(var(--primary-color-rgb), 0.05)
+  );
+  z-index: -1;
+  border-radius: 15px;
+  opacity: 0.8;
 }
 
 .form-group {

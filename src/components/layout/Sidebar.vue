@@ -44,43 +44,43 @@ const activeTab = ref('tasks')
 const sidebarItems = [
   { 
     id: 'tasks', 
-    label: 'Tarefas',
-    route: '/tasks'
+    label: 'Tarefas', 
+    route: '/tasks' 
   },
   { 
     id: 'projects', 
-    label: 'Projetos',
-    route: '/projects'
+    label: 'Projetos', 
+    route: '/projects' 
   },
   { 
     id: 'statistics', 
-    label: 'Estatísticas',
-    route: '/statistics'
+    label: 'Estatísticas', 
+    route: '/statistics' 
   },
   { 
     id: 'gamification', 
-    label: 'Conquistas',
-    route: '/gamification'
+    label: 'Gamificação', 
+    route: '/gamification' 
   },
   { 
     id: 'agenda', 
-    label: 'Agenda',
-    route: '/agenda'
+    label: 'Agenda', 
+    route: '/agenda' 
   },
   { 
     id: 'calendar', 
-    label: 'Calendário',
-    route: '/calendar'
+    label: 'Calendário', 
+    route: '/calendar' 
   },
   { 
     id: 'pomodoro', 
-    label: 'Pomodoro',
-    route: '/pomodoro'
+    label: 'Pomodoro', 
+    route: '/pomodoro' 
   },
   { 
     id: 'settings', 
-    label: 'Configurações',
-    route: '/settings'
+    label: 'Configurações', 
+    route: '/settings' 
   }
 ]
 
@@ -115,13 +115,29 @@ const getIconForItem = (itemId) => {
 }
 
 const switchTab = (tabName) => {
+  console.log('Mudando tab:', tabName)
   activeTab.value = tabName
   
   // Encontrar a rota correspondente
   const selectedItem = sidebarItems.find(item => item.id === tabName)
   
+  console.log('Item selecionado:', selectedItem)
+  console.log('Itens disponíveis:', sidebarItems)
+  
   if (selectedItem && selectedItem.route) {
-    router.push(selectedItem.route)
+    console.log('Navegando para rota:', selectedItem.route)
+    router.push(selectedItem.route).then(() => {
+      console.log('Navegação bem-sucedida')
+    }).catch(err => {
+      console.error('Erro ao navegar:', err)
+      console.log('Detalhes do erro:', {
+        tabName,
+        selectedItem,
+        route: selectedItem.route
+      })
+    })
+  } else {
+    console.warn('Rota não encontrada para:', tabName)
   }
   
   // Emitir evento para componente pai

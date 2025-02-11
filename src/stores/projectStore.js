@@ -11,25 +11,35 @@ export const useProjectStore = () => {
     try {
       const savedProjects = localStorage.getItem(PROJECTS_STORAGE_KEY)
       if (savedProjects) {
-        projects.value = JSON.parse(savedProjects)
+        const parsedProjects = JSON.parse(savedProjects)
+        
+        // Filtrar projetos válidos (com nome)
+        projects.value = parsedProjects.filter(p => p.name && p.name.trim() !== '')
         
         // Restaurar projeto selecionado
         const lastSelectedProjectId = localStorage.getItem(SELECTED_PROJECT_KEY)
         if (lastSelectedProjectId) {
-          const project = projects.value.find(p => p.id === parseInt(lastSelectedProjectId))
+          const project = projects.value.find(p => p.id.toString() === lastSelectedProjectId)
           if (project) {
             selectedProject.value = project
           }
         }
+        
+        // Salvar projetos filtrados
+        saveProjects()
       }
     } catch (error) {
       console.error('Erro ao carregar projetos:', error)
+      projects.value = []
     }
   }
 
   const saveProjects = () => {
     try {
-      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects.value))
+      // Filtrar projetos válidos antes de salvar
+      const validProjects = projects.value.filter(p => p.name && p.name.trim() !== '')
+      
+      localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(validProjects))
       
       // Salvar ID do projeto selecionado
       if (selectedProject.value) {
@@ -82,6 +92,13 @@ export const useProjectStore = () => {
     }
   }
 
+  const clearAllProjects = () => {
+    projects.value = []
+    selectedProject.value = null
+    localStorage.removeItem(PROJECTS_STORAGE_KEY)
+    localStorage.removeItem(SELECTED_PROJECT_KEY)
+  }
+
   const updateProjectWorkSession = (project, duration) => {
     const today = new Date()
     const workSession = {
@@ -97,21 +114,6 @@ export const useProjectStore = () => {
     project.workSessions.push(workSession)
     project.totalHours += duration / 60  // converter para horas
 
-    // Atualizar streak
-    const lastWorkDate = project.lastWorkDate
-    if (!lastWorkDate || 
-        (today.getDate() === lastWorkDate.getDate() + 1 && 
-         today.getMonth() === lastWorkDate.getMonth() && 
-         today.getFullYear() === lastWorkDate.getFullYear())) {
-      project.streak = lastWorkDate ? project.streak + 1 : 1
-    } else if (!lastWorkDate || 
-               today.getDate() !== lastWorkDate.getDate() || 
-               today.getMonth() !== lastWorkDate.getMonth() || 
-               today.getFullYear() !== lastWorkDate.getFullYear()) {
-      project.streak = 1
-    }
-
-    project.lastWorkDate = today
     saveProjects()
   }
 
@@ -123,6 +125,7 @@ export const useProjectStore = () => {
     createProject,
     selectProject,
     deleteProject,
+    clearAllProjects,
     updateProjectWorkSession
   }
 }

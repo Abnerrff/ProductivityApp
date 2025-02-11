@@ -35,12 +35,25 @@ const routes = [
     path: '/agenda',
     name: 'Agenda',
     component: Agenda
+  },
+  // Rota de fallback para capturar rotas não encontradas
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: TaskManager  // Redireciona para página inicial
   }
 ]
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+// Adicionar log de erro global
+router.onError((error, to, from) => {
+  console.error('Erro de navegação:', error)
+  console.log('Tentando navegar para:', to.path)
+  console.log('Vindo de:', from.path)
 })
 
 export default router
