@@ -1,7 +1,7 @@
 <template>
   <div class="projects-container">
     <div class="projects-header">
-      <h2>Meus Projetos</h2>
+      <h2>Tempo Dedicado</h2>
       <div class="btn-new-project-container">
         <button 
           @click="openCreateProjectModal" 
@@ -31,24 +31,18 @@
       >
         <div class="project-card-header">
           <h3>{{ project.title }}</h3>
-          <span 
-            :class="['project-status', getProjectStatusClass(project)]"
-          >
-            {{ project.status }}
-          </span>
         </div>
         
         <div class="project-card-body">
-          <p class="project-description">{{ project.description || 'Sem descrição' }}</p>
-          
-          <div class="project-dates">
-            <div class="start-date">
-              <i class="fas fa-calendar-alt"></i>
-              Início: {{ formatDate(project.startDate) }}
-            </div>
-            <div class="end-date">
+          <div class="project-time-focus">
+            <div class="time-icon">
               <i class="fas fa-clock"></i>
-              Tempo dedicado: {{ formatTime(project.timeSpent) }}
+            </div>
+            <div class="time-details">
+              <span class="time-label">Tempo Total</span>
+              <strong class="time-value">
+                {{ formatTime(project.timeSpent) }}
+              </strong>
             </div>
           </div>
           
@@ -57,7 +51,6 @@
               class="progress-bar" 
               :style="{ width: `${project.progress}%` }"
             ></div>
-            <span>{{ project.progress }}% concluído</span>
           </div>
         </div>
         
@@ -66,13 +59,13 @@
             @click="editProject(project)" 
             class="btn-edit"
           >
-            <i class="fas fa-edit"></i> Editar
+            <i class="fas fa-edit"></i>
           </button>
           <button 
             @click="confirmDeleteProject(project)" 
             class="btn-delete"
           >
-            <i class="fas fa-trash"></i> Excluir
+            <i class="fas fa-trash"></i>
           </button>
         </div>
       </div>
@@ -459,384 +452,175 @@ const closeModal = () => {
 
 <style scoped>
 :root {
-  --primary-color: #3C3C3C;        /* Cinza escuro para substituir azul */
-  --secondary-color: #2C2C2C;      /* Cinza mais escuro para substituir verde */
-  --danger-color: #4C1C1C;         /* Tom de vermelho escuro */
-  --text-color: #E0E0E0;           /* Texto claro para contraste */
-  --background-color: #121212;     /* Fundo escuro */
-  --card-background: #1C1C1C;      /* Fundo de cartão */
-  --border-color: #2C2C2C;         /* Cor de borda */
-  --input-background: #2A2A2A;     /* Fundo de input mais contrastante */
-  --modal-background: #161616;     /* Fundo do modal mais escuro */
-  --silver-border: #A0A0A0;        /* Cor prata para borda */
-  --modal-overlay: rgba(0, 0, 0, 0.9);  /* Fundo do overlay mais opaco */
+  --bg-dark: #121212;
+  --bg-card: #1c1c1c;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --accent-blue: #4a9eff;
+  --accent-green: #2ecc71;
+  --accent-orange: #f39c12;
 }
 
 .projects-container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: var(--background-color);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  padding: 30px;
+  background-color: var(--bg-dark);
+}
+
+.projects-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  border-bottom: 2px solid rgba(74, 158, 255, 0.2);
+  padding-bottom: 15px;
+}
+
+.projects-header h2 {
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  font-weight: 300;
+  margin: 0;
+}
+
+.btn-new-project {
+  background-color: rgba(74, 158, 255, 0.1);
+  color: var(--accent-blue);
+  border: 2px solid var(--accent-blue);
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 300;
+  transition: all 0.3s ease;
+}
+
+.btn-new-project:hover {
+  background-color: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
 }
 
 .projects-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 40px;  /* Aumentei para 40px para mais espaço */
-}
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: var(--modal-overlay);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  backdrop-filter: blur(5px);
-}
-
-.modal-content {
-  background-color: var(--modal-background);
-  border-radius: 12px;
-  width: 100%;
-  max-width: 800px;
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 50px;  /* Aumentei o padding */
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
-  color: var(--text-color);
-  position: relative;
-  border: 3px solid var(--silver-border);
-  animation: fadeIn 0.4s ease-out;
+  gap: 30px;
 }
 
 .project-card {
-  background-color: var(--card-background);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
   overflow: hidden;
-  transition: transform 0.3s ease;
+}
+
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, var(--accent-blue), var(--accent-green));
 }
 
 .project-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
-}
-
-.project-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  background-color: var(--border-color);
+  transform: translateY(-10px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
 .project-card-header h3 {
-  margin: 0;
-  color: var(--text-color);
+  color: var(--accent-blue);
+  margin: 0 0 15px 0;
+  font-size: 1.4rem;
+  font-weight: 400;
+  transition: color 0.3s ease;
+}
+
+.project-card:hover .project-card-header h3 {
+  color: var(--accent-green);
+}
+
+.project-time-focus {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.time-icon {
+  background-color: rgba(74, 158, 255, 0.1);
+  color: var(--accent-blue);
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  border: 2px solid var(--accent-blue);
+  transition: all 0.3s ease;
+}
+
+.time-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.time-label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  letter-spacing: 1px;
+}
+
+.time-value {
+  color: var(--accent-green);
+  font-size: 1.8rem;
+  font-weight: 400;
+}
+
+.project-progress {
+  background-color: rgba(46, 204, 113, 0.1);
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 15px;
+}
+
+.progress-bar {
+  background: linear-gradient(to right, var(--accent-blue), var(--accent-green));
+  height: 100%;
+  transition: width 0.5s ease;
 }
 
 .project-card-actions {
   display: flex;
-  gap: 10px;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-edit, .btn-delete {
   background: none;
   border: none;
-  color: var(--text-color);
+  color: var(--text-secondary);
   cursor: pointer;
-  transition: color 0.3s ease;
+  transition: all 0.3s ease;
+  opacity: 0.7;
 }
 
 .btn-edit:hover {
-  color: var(--primary-color);
-}
-
-.btn-delete:hover {
-  color: var(--danger-color);
-}
-
-.project-card-body {
-  padding: 15px;
-}
-
-.project-description {
-  color: var(--text-color);
-  opacity: 0.7;
-  margin-bottom: 15px;
-}
-
-.project-dates {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 15px;
-  color: var(--text-color);
-}
-
-.project-dates i {
-  margin-right: 8px;
-  opacity: 0.6;
-}
-
-.project-progress {
-  background-color: var(--border-color);
-  border-radius: 10px;
-  height: 20px;
-  margin-bottom: 15px;
-  position: relative;
-}
-
-.progress-bar {
-  background-color: var(--primary-color);
-  height: 100%;
-  border-radius: 10px;
-  transition: width 0.5s ease;
-}
-
-.progress-text {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-color);
-  font-size: 0.8rem;
-}
-
-.project-status-badge {
-  text-align: center;
-  padding: 5px 10px;
-  border-radius: 15px;
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-.status-not-started {
-  background-color: #3C3C3C;
-  color: var(--text-color);
-}
-
-.status-in-progress {
-  background-color: #2C2C2C;
-  color: var(--text-color);
-}
-
-.status-completed {
-  background-color: #1C1C1C;
-  color: var(--text-color);
-}
-
-.no-projects-placeholder {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 50px;
-  background-color: var(--card-background);
-  border-radius: 8px;
-  color: var(--text-color);
-}
-
-.no-projects-placeholder i {
-  font-size: 3rem;
-  color: var(--border-color);
-  margin-bottom: 20px;
-}
-
-.form-row {
-  display: flex;
-  gap: 25px;  /* Aumentei o gap entre os campos */
-  margin-bottom: 25px;  /* Espaçamento maior entre linhas de formulário */
-}
-
-.form-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 12px;
-  color: var(--text-color);
-  font-weight: 500;
-  font-size: 1rem;
-  opacity: 0.8;
-}
-
-.form-group input,
-.form-group textarea,
-.form-group select {
-  padding: 15px;
-  background-color: var(--input-background);
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-  font-size: 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
-}
-
-.form-group input:focus,
-.form-group textarea:focus,
-.form-group select:focus {
-  outline: none;
-  border-color: var(--silver-border);
-  box-shadow: 0 0 10px rgba(160, 160, 160, 0.4);
-  transform: translateY(-2px);
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 35px;  /* Espaçamento maior no cabeçalho */
-}
-
-.modal-header h2 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: var(--text-color);
-  font-weight: 600;
-}
-
-.modal-close-btn {
-  background: none;
-  border: none;
-  color: var(--text-color);
-  font-size: 1.5rem;
-  cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.modal-close-btn:hover {
+  color: var(--accent-blue);
   opacity: 1;
 }
 
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 15px;
-  margin-top: 30px;
-}
-
-.projects-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 30px;
-  position: relative;
-}
-
-.projects-header h2 {
-  margin: 0;
-  color: var(--text-color);
-  font-size: 1.8rem;
-}
-
-.btn-new-project-container {
-  position: absolute;
-  top: 0;
-  right: 0;
-}
-
-.btn-new-project {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #3C3C3C, #2C2C2C);
-  color: var(--text-color);
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  box-shadow: 
-    0 4px 6px rgba(0, 0, 0, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Resto do CSS de botão permanece igual */
-.btn-secondary, 
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 
-    0 4px 6px rgba(0, 0, 0, 0.2),
-    0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.btn-secondary {
-  background: linear-gradient(135deg, #2C2C2C, #1C1C1C);
-  color: var(--text-color);
-}
-
-.btn-danger {
-  background: linear-gradient(135deg, #4C1C1C, #3C0C0C);
-  color: #FF6B6B;
-}
-
-.btn-secondary::before,
-.btn-danger::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    120deg, 
-    transparent, 
-    rgba(255,255,255,0.1), 
-    transparent
-  );
-  transition: all 0.5s ease;
-}
-
-.btn-secondary:hover::before,
-.btn-danger:hover::before {
-  left: 100%;
-}
-
-.btn-secondary:hover,
-.btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 
-    0 6px 8px rgba(0, 0, 0, 0.3),
-    0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.btn-secondary i,
-.btn-danger i {
-  font-size: 1rem;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+.btn-delete:hover {
+  color: var(--accent-orange);
+  opacity: 1;
 }
 </style>

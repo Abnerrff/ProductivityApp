@@ -1,666 +1,583 @@
 <template>
   <div class="pomodoro-container">
-    <div class="pomodoro-grid">
-      <div class="timer-section">
-        <div class="pomodoro-layout">
-          <div class="project-selector">
-            <button 
-              @click="openProjectModal" 
-              class="project-select-btn"
-            >
-              <span class="project-icon">📋</span>
-              <span class="project-name">{{ selectedProjectName }}</span>
-              <span class="dropdown-icon">▼</span>
-            </button>
-          </div>
-
-          <div class="timer-content">
-            <div class="mode-selector">
-              <button 
-                @click="setMode('work')" 
-                :class="{ active: currentMode === 'work' }"
-              >
-                Foco
-              </button>
-              <button 
-                @click="setMode('break')" 
-                :class="{ active: currentMode === 'break' }"
-              >
-                Pausa
-              </button>
-            </div>
-
-            <div class="timer-display">
-              <div class="progress-timer">
-                <svg viewBox="0 0 100 100" class="progress-svg">
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="45" 
-                    class="timer-background"
-                    fill="none"
-                  />
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="45" 
-                    class="timer-progress"
-                    fill="none"
-                    :style="{
-                      strokeDashoffset: progressStrokeDashoffset,
-                      stroke: progressColor
-                    }"
-                  />
-                </svg>
-                <div class="time-overlay">{{ formattedTime }}</div>
-              </div>
-            </div>
-            
-            <div class="timer-controls">
-              <div class="action-buttons">
-                <button 
-                  v-if="!isRunning" 
-                  @click="startTimer" 
-                  class="start-btn"
-                  :disabled="!selectedProject"
-                >
-                  Iniciar
-                </button>
-                <button 
-                  v-if="isRunning" 
-                  @click="pauseTimer" 
-                  class="pause-btn"
-                >
-                  Pausar
-                </button>
-                <button 
-                  @click="resetTimer" 
-                  class="reset-btn"
-                >
-                  Resetar
-                </button>
-                <button 
-                  @click="openSettingsModal" 
-                  class="settings-btn"
-                >
-                  ⚙️
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de Seleção de Projeto -->
-    <div 
-      v-if="showProjectModal" 
-      class="project-modal-overlay"
-      @click.self="closeProjectModal"
-    >
-      <div class="project-modal-content" @click.stop>
-        <div class="project-modal-header">
-          <h3>Selecionar Projeto</h3>
-          <button @click="closeProjectModal" class="close-btn">✕</button>
-        </div>
-        
-        <div class="project-list" v-if="projects.length > 0">
-          <div 
+    <div class="pomodoro-header">
+      <h2>Pomodoro Timer</h2>
+      <div class="project-selector">
+        <select 
+          v-model="selectedProject" 
+          @change="globalLog(`Projeto Selecionado: ${selectedProject?.title}`, { projectId: selectedProject?.id })"
+        >
+          <option 
             v-for="project in projects" 
             :key="project.id" 
-            class="project-item"
-            :class="{ 'selected': selectedProject && selectedProject.id === project.id }"
-            @click="selectProject(project)"
+            :value="project"
           >
-            <div class="project-info">
-              <div class="project-name-container">
-                <span class="project-name">{{ project.title }}</span>
-                <div class="project-details">
-                  <span class="project-progress">
-                    {{ project.timeSpent ? project.timeSpent.toFixed(1) : '0.0' }} min
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
+            {{ project.title }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="timer-display">
+      <div 
+        class="timer-circle" 
+        :class="{
+          'work-mode': currentMode === 'work',
+          'break-mode': currentMode === 'break'
+        }"
+      >
+        <div class="timer-content">
+          <span class="timer-minutes">
+            {{ Math.floor(timeRemaining / 60).toString().padStart(2, '0') }}
+          </span>
+          <span class="timer-separator">:</span>
+          <span class="timer-seconds">
+            {{ (timeRemaining % 60).toString().padStart(2, '0') }}
+          </span>
         </div>
-        
-        <div v-else class="no-projects">
-          <p>Nenhum projeto encontrado</p>
+        <div class="timer-mode">
+          {{ currentMode === 'work' ? 'Trabalho' : 'Intervalo' }}
         </div>
       </div>
     </div>
 
-    <!-- Modal de Configurações -->
-    <div 
-      v-if="showSettingsModal" 
-      class="settings-modal-overlay"
-      @click.self="closeSettingsModal"
-    >
-      <div class="settings-modal-content" @click.stop>
-        <div class="settings-modal-header">
-          <h3>Configurações do Pomodoro</h3>
-          <button @click="closeSettingsModal" class="close-btn">✕</button>
-        </div>
-        
-        <div class="settings-group">
-          <label>Tempo de Foco</label>
-          <div class="settings-input">
-            <button @click="workDuration > 1 ? workDuration-- : null">-</button>
-            <input 
-              type="number" 
-              v-model.number="workDuration" 
-              min="1" 
-              max="60"
-            />
-            <button @click="workDuration < 60 ? workDuration++ : null">+</button>
-            <span>minutos</span>
-          </div>
-        </div>
+    <div class="timer-controls">
+      <button 
+        @click="startTimer" 
+        :disabled="isRunning"
+        class="btn btn-start"
+      >
+        Iniciar
+      </button>
+      <button 
+        @click="pauseTimer" 
+        :disabled="!isRunning"
+        class="btn btn-pause"
+      >
+        Pausar
+      </button>
+      <button 
+        @click="stopTimer" 
+        :disabled="!isRunning"
+        class="btn btn-stop"
+      >
+        Parar
+      </button>
+    </div>
 
-        <div class="settings-group">
-          <label>Tempo de Pausa</label>
-          <div class="settings-input">
-            <button @click="breakDuration > 1 ? breakDuration-- : null">-</button>
-            <input 
-              type="number" 
-              v-model.number="breakDuration" 
-              min="1" 
-              max="30"
-            />
-            <button @click="breakDuration < 30 ? breakDuration++ : null">+</button>
-            <span>minutos</span>
-          </div>
-        </div>
+    <div class="timer-stats">
+      <div class="stat-item">
+        <span>Pomodoros Concluídos:</span>
+        <strong>{{ completedPomodoros }}</strong>
+      </div>
+      <div class="stat-item">
+        <span>Tempo Total no Projeto:</span>
+        <strong>
+          {{ 
+            selectedProject?.totalTime 
+              ? `${selectedProject.totalTime} min` 
+              : '0 min' 
+          }}
+        </strong>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useProjectsStore } from '@/stores/projectsStore'
 
-// Stores
+// Função de log global
+const globalLog = (message, data = {}) => {
+  console.warn(`🌍 [GLOBAL LOG] ${message}`, JSON.stringify(data))
+}
+
+// Definir nome do componente
+const COMPONENT_NAME = 'PomodoroComponent'
+
+// Stores e estados
 const projectsStore = useProjectsStore()
+const projects = ref([])
+const selectedProject = ref(null)
+
+// Log de diagnóstico dos projetos
+const initializeProjects = () => {
+  try {
+    // Tentar carregar projetos do store
+    projects.value = projectsStore.projects || []
+    
+    globalLog(`${COMPONENT_NAME}: Projetos Carregados`, {
+      projectCount: projects.value.length
+    })
+
+    // Se não houver projetos, tentar recuperar do localStorage
+    if (projects.value.length === 0) {
+      const storedProjects = localStorage.getItem('projects')
+      if (storedProjects) {
+        try {
+          projects.value = JSON.parse(storedProjects)
+          globalLog(`${COMPONENT_NAME}: Projetos Recuperados do LocalStorage`, {
+            projectCount: projects.value.length
+          })
+        } catch (error) {
+          console.error(`❌ ${COMPONENT_NAME}: Erro ao recuperar projetos`, error)
+        }
+      }
+    }
+
+    // Selecionar primeiro projeto automaticamente
+    if (projects.value.length > 0 && !selectedProject.value) {
+      selectedProject.value = projects.value[0]
+      globalLog(`${COMPONENT_NAME}: Projeto Selecionado Automaticamente`, {
+        project: selectedProject.value.title
+      })
+    }
+  } catch (error) {
+    console.error(`❌ ${COMPONENT_NAME}: Erro na inicialização de projetos`, error)
+  }
+}
 
 // Estados do timer
-const workDuration = ref(25)  // Minutos de foco
-const breakDuration = ref(5)  // Minutos de pausa
-const currentMode = ref('work')
-const timeRemaining = ref(workDuration.value * 60)
+const timerWorker = ref(null)
 const isRunning = ref(false)
-const timerInterval = ref(null)
+const timeRemaining = ref(25 * 60) // 25 minutos padrão
+const totalDuration = ref(25 * 60)
+const currentMode = ref('work')
+const workDuration = ref(25)
+const breakDuration = ref(5)
+const completedPomodoros = ref(0)
+const startTime = ref(0)
 
-// Estados do projeto
-const selectedProject = ref(null)
-const showProjectModal = ref(false)
-const showSettingsModal = ref(false)
-
-// Projetos disponíveis
-const projects = computed(() => {
-  return projectsStore.projects || []
-})
-
-// Nome do projeto selecionado
+// Computed para nome do projeto
 const selectedProjectName = computed(() => {
-  return selectedProject.value ? selectedProject.value.title : 'Selecionar Projeto'
+  return selectedProject.value 
+    ? selectedProject.value.title 
+    : 'Selecionar Projeto'
 })
 
-// Computados para progresso do timer
-const progressStrokeDashoffset = computed(() => {
-  const totalTime = currentMode.value === 'work' 
-    ? workDuration.value * 60 
-    : breakDuration.value * 60
-  const progress = timeRemaining.value / totalTime
-  return (1 - progress) * 282.6
-})
+// Função para criar o worker
+const createTimerWorker = () => {
+  try {
+    globalLog(`${COMPONENT_NAME}: Criando Web Worker`, {
+      workerPath: '../workers/timer.worker.js'
+    })
+    
+    // Usar import.meta.url para caminho correto
+    const workerUrl = new URL('../workers/timer.worker.js', import.meta.url)
+    
+    // Criar worker
+    timerWorker.value = new Worker(workerUrl, { type: 'module' })
+    
+    if (!timerWorker.value) {
+      console.error(`❌ ${COMPONENT_NAME}: Falha crítica - Worker não criado`)
+      return false
+    }
 
-const progressColor = computed(() => {
-  return currentMode.value === 'work' 
-    ? 'var(--primary-color)' 
-    : 'var(--success-color)'
-})
+    globalLog(`${COMPONENT_NAME}: Worker Criado com Sucesso`, {
+      workerUrl: workerUrl.toString()
+    })
 
-// Formatação do tempo
-const formattedTime = computed(() => {
-  const minutes = Math.floor(timeRemaining.value / 60)
-  const seconds = timeRemaining.value % 60
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-})
+    // Configurar listeners
+    timerWorker.value.onmessage = (event) => {
+      const { 
+        type, 
+        remainingTime, 
+        mode, 
+        totalDuration: workerTotalDuration, 
+        startTime: workerStartTime,
+        totalTime 
+      } = event.data
 
-// Métodos de controle do timer
-const startTimer = () => {
-  if (!selectedProject.value) {
-    alert('Selecione um projeto antes de iniciar')
-    return
-  }
+      globalLog(`${COMPONENT_NAME}: Mensagem do Worker`, { 
+        type, 
+        remainingTime, 
+        mode
+      })
 
-  if (!isRunning.value) {
-    isRunning.value = true
-    timerInterval.value = setInterval(() => {
-      if (timeRemaining.value > 0) {
-        timeRemaining.value--
-      } else {
-        stopTimer()
-        handleTimerCompletion()
+      // Processamento de mensagens do worker
+      switch (type) {
+        case 'tick':
+          timeRemaining.value = remainingTime
+          currentMode.value = mode
+          totalDuration.value = workerTotalDuration
+          startTime.value = workerStartTime
+          saveTimerState()
+          break
+        case 'completed':
+          isRunning.value = false
+          registerProjectTime(totalTime)
+          handleTimerCompletion(mode)
+          saveTimerState()
+          break
+        case 'pause':
+          timeRemaining.value = remainingTime
+          currentMode.value = mode
+          totalDuration.value = workerTotalDuration
+          startTime.value = workerStartTime
+          saveTimerState()
+          break
+        case 'stopped':
+          timeRemaining.value = currentMode.value === 'work' 
+            ? workDuration.value * 60 
+            : breakDuration.value * 60
+          totalDuration.value = timeRemaining.value
+          saveTimerState()
+          break
       }
-    }, 1000)
+    }
+
+    // Tratamento de erros
+    timerWorker.value.onerror = (error) => {
+      console.error(`❌ ${COMPONENT_NAME}: Erro crítico no Worker`, error)
+    }
+
+    return true
+  } catch (error) {
+    console.error(`❌ ${COMPONENT_NAME}: Erro fatal ao criar Worker`, error)
+    return false
   }
 }
 
-const pauseTimer = () => {
-  stopTimer()
-}
+// Métodos auxiliares
+const registerProjectTime = (timeSpent) => {
+  if (!selectedProject.value) return
 
-const resetTimer = () => {
-  stopTimer()
-  timeRemaining.value = currentMode.value === 'work' 
-    ? workDuration.value * 60 
-    : breakDuration.value * 60
-}
-
-const stopTimer = () => {
-  if (timerInterval.value) {
-    clearInterval(timerInterval.value)
-    timerInterval.value = null
-    isRunning.value = false
+  try {
+    const projectIndex = projects.value.findIndex(p => p.id === selectedProject.value.id)
+    
+    if (projectIndex !== -1) {
+      const timeSpentMinutes = Math.floor(timeSpent / 60)
+      
+      projects.value[projectIndex].totalTime = (projects.value[projectIndex].totalTime || 0) + timeSpentMinutes
+      
+      globalLog(`${COMPONENT_NAME}: Tempo Registrado no Projeto`, {
+        project: selectedProject.value.title,
+        timeSpent: timeSpentMinutes
+      })
+      
+      localStorage.setItem('projects', JSON.stringify(projects.value))
+    }
+  } catch (error) {
+    console.error(`❌ ${COMPONENT_NAME}: Erro ao registrar tempo no projeto`, error)
   }
 }
 
-// Lógica de conclusão do timer
-const handleTimerCompletion = () => {
-  if (currentMode.value === 'work') {
-    registerWorkTime()
+const handleTimerCompletion = (mode) => {
+  if (mode === 'work') {
+    completedPomodoros.value++
     setMode('break')
   } else {
     setMode('work')
   }
 }
 
-// Registro de tempo
-const registerWorkTime = () => {
-  if (!selectedProject.value) return
-
-  const minutesSpent = workDuration.value
-  projectsStore.addProjectTime(selectedProject.value.id, minutesSpent)
-}
-
-// Métodos de modo
 const setMode = (mode) => {
   currentMode.value = mode
   timeRemaining.value = mode === 'work' 
     ? workDuration.value * 60 
     : breakDuration.value * 60
+  totalDuration.value = timeRemaining.value
 }
 
-// Métodos de modal de projeto
-const openProjectModal = () => {
-  showProjectModal.value = true
+// Métodos de persistência
+const saveTimerState = () => {
+  try {
+    const state = {
+      remainingTime: timeRemaining.value,
+      currentMode: currentMode.value,
+      totalDuration: totalDuration.value,
+      isRunning: isRunning.value,
+      projectId: selectedProject.value?.id,
+      workDuration: workDuration.value,
+      breakDuration: breakDuration.value,
+      completedPomodoros: completedPomodoros.value,
+      startTime: startTime.value
+    }
+    
+    localStorage.setItem('pomodoro_timer_state', JSON.stringify(state))
+    globalLog(`${COMPONENT_NAME}: Estado Salvo`, state)
+  } catch (error) {
+    console.error(`❌ ${COMPONENT_NAME}: Erro ao salvar estado`, error)
+  }
 }
 
-const closeProjectModal = () => {
-  showProjectModal.value = false
+const loadTimerState = () => {
+  try {
+    const savedState = localStorage.getItem('pomodoro_timer_state')
+    
+    if (savedState) {
+      const state = JSON.parse(savedState)
+      
+      globalLog(`${COMPONENT_NAME}: Estado Carregado`, state)
+      
+      // Restaurar projeto
+      if (state.projectId) {
+        const project = projects.value.find(p => p.id === state.projectId)
+        if (project) {
+          selectedProject.value = project
+        }
+      }
+      
+      // Restaurar estados
+      timeRemaining.value = state.remainingTime
+      currentMode.value = state.currentMode
+      totalDuration.value = state.totalDuration
+      isRunning.value = state.isRunning
+      workDuration.value = state.workDuration
+      breakDuration.value = state.breakDuration
+      completedPomodoros.value = state.completedPomodoros
+      startTime.value = state.startTime
+      
+      return state
+    }
+  } catch (error) {
+    console.error(`❌ ${COMPONENT_NAME}: Erro ao carregar estado`, error)
+  }
+  
+  return null
 }
 
-const selectProject = (project) => {
-  selectedProject.value = project
-  closeProjectModal()
+// Método de inicialização
+const initializePomodoro = async () => {
+  try {
+    globalLog(`${COMPONENT_NAME}: Inicializando`, {
+      timestamp: Date.now()
+    })
+
+    // Inicializar projetos
+    initializeProjects()
+
+    // Garantir renderização
+    await nextTick()
+
+    // Criar worker
+    const workerCreated = createTimerWorker()
+    
+    if (!workerCreated) {
+      console.error(`❌ ${COMPONENT_NAME}: Falha ao criar worker`)
+      return false
+    }
+
+    // Carregar estado salvo
+    const savedState = loadTimerState()
+    
+    globalLog(`${COMPONENT_NAME}: Estado Carregado`, {
+      savedState: !!savedState
+    })
+
+    return true
+  } catch (error) {
+    console.error(`❌ ${COMPONENT_NAME}: Erro na inicialização`, error)
+    return false
+  }
 }
 
-// Métodos de configurações
-const openSettingsModal = () => {
-  showSettingsModal.value = true
-}
-
-const closeSettingsModal = () => {
-  showSettingsModal.value = false
-}
-
-// Observador para ajustar tempo restante
-watch(currentMode, (newMode) => {
-  timeRemaining.value = newMode === 'work' 
-    ? workDuration.value * 60 
-    : breakDuration.value * 60
+// Ciclo de vida
+onMounted(async () => {
+  globalLog(`${COMPONENT_NAME}: Componente Montado`)
+  
+  // Inicialização com delay
+  await nextTick()
+  await initializePomodoro()
 })
+
+// Desmontar worker
+onUnmounted(() => {
+  globalLog(`${COMPONENT_NAME}: Componente Desmontado`)
+  
+  if (timerWorker.value) {
+    timerWorker.value.terminate()
+    timerWorker.value = null
+  }
+})
+
+// Métodos de controle do timer
+const startTimer = () => {
+  if (timerWorker.value) {
+    timerWorker.value.postMessage({
+      type: 'start',
+      duration: timeRemaining.value,
+      mode: currentMode.value
+    })
+    isRunning.value = true
+    globalLog(`${COMPONENT_NAME}: Timer Iniciado`, {
+      mode: currentMode.value,
+      duration: timeRemaining.value
+    })
+  }
+}
+
+const pauseTimer = () => {
+  if (timerWorker.value) {
+    timerWorker.value.postMessage({ type: 'pause' })
+    isRunning.value = false
+    globalLog(`${COMPONENT_NAME}: Timer Pausado`)
+  }
+}
+
+const stopTimer = () => {
+  if (timerWorker.value) {
+    timerWorker.value.postMessage({ type: 'stop' })
+    isRunning.value = false
+    setMode(currentMode.value)
+    globalLog(`${COMPONENT_NAME}: Timer Parado`)
+  }
+}
 </script>
 
 <style scoped>
 .pomodoro-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-.pomodoro-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 500px;
-}
-
-.timer-section {
-  width: 100%;
-  background: var(--bg-secondary);
-  border-radius: 15px;
+  max-width: 400px;
+  margin: 0 auto;
   padding: 20px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.pomodoro-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.project-selector {
-  display: flex;
-  justify-content: center;
-}
-
-.project-select-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  max-width: 300px;
-  padding: 12px 15px;
-  background-color: var(--bg-primary);
-  border: 2px solid transparent;
+  background-color: #121212;  /* Muito escuro */
   border-radius: 12px;
-  color: var(--text-color);
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
+  color: #b0b0b0;  /* Cinza claro para texto */
+  border: 1px solid #1f1f1f;
 }
 
-.project-select-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    45deg, 
-    rgba(var(--primary-color-rgb), 0.1), 
-    rgba(var(--primary-color-rgb), 0.05)
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-}
-
-.project-select-btn:hover::before {
-  opacity: 1;
-}
-
-.project-select-btn:hover {
-  border-color: rgba(var(--primary-color-rgb), 0.3);
-  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.1);
-}
-
-.project-select-btn:active {
-  transform: scale(0.98);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.project-select-btn .project-icon {
-  font-size: 1.2rem;
-  margin-right: 10px;
-  opacity: 0.7;
-  transition: opacity 0.3s ease;
-}
-
-.project-select-btn:hover .project-icon {
-  opacity: 1;
-}
-
-.project-select-btn .project-name {
-  flex-grow: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 200px;
-}
-
-.project-select-btn .dropdown-icon {
-  font-size: 0.8rem;
-  margin-left: 10px;
-  opacity: 0.6;
-  transition: transform 0.3s ease, opacity 0.3s ease;
-}
-
-.project-select-btn:hover .dropdown-icon {
-  opacity: 0.9;
-  transform: rotate(180deg);
-}
-
-.timer-content {
+.pomodoro-header {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #1f1f1f;
+  padding-bottom: 10px;
 }
 
-.mode-selector {
-  display: flex;
-  gap: 10px;
-  background-color: var(--bg-primary);
-  border-radius: 50px;
-  padding: 5px;
+.pomodoro-header h2 {
+  color: #4a9eff;  /* Azul suave */
+  margin: 0;
+  font-weight: 300;
 }
 
-.mode-selector button {
-  background: none;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 50px;
+.project-selector select {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #1f1f1f;
+  background-color: #1a1a1a;
+  color: #b0b0b0;
+  appearance: none;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: var(--text-muted);
-}
-
-.mode-selector button.active {
-  background-color: var(--primary-color);
-  color: white;
 }
 
 .timer-display {
-  position: relative;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.timer-circle {
   width: 250px;
   height: 250px;
-}
-
-.progress-timer {
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease;
   position: relative;
-  width: 100%;
-  height: 100%;
+  overflow: hidden;
+  background-color: #1a1a1a;
+  border: 2px solid #2a2a2a;
 }
 
-.progress-svg {
-  transform: rotate(-90deg);
-  width: 100%;
-  height: 100%;
+.work-mode {
+  box-shadow: 0 0 30px rgba(74, 158, 255, 0.3);  /* Azul suave */
 }
 
-.timer-background {
-  stroke: var(--bg-primary);
-  stroke-width: 10;
+.break-mode {
+  box-shadow: 0 0 30px rgba(46, 204, 113, 0.3);  /* Verde suave */
 }
 
-.timer-progress {
-  stroke-dasharray: 282.6;
-  stroke-width: 10;
-  transition: stroke-dashoffset 0.5s ease;
+.timer-content {
+  font-size: 4rem;
+  font-weight: 200;
+  color: #4a9eff;  /* Azul suave */
+  z-index: 1;
 }
 
-.time-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 3rem;
-  font-weight: bold;
-  color: var(--text-color);
+.timer-mode {
+  font-size: 1rem;
+  margin-top: 10px;
+  opacity: 0.7;
+  color: #7a7a7a;
 }
 
 .timer-controls {
   display: flex;
   justify-content: center;
   gap: 15px;
-  margin-top: 20px;
+  margin-bottom: 20px;
 }
 
-.action-buttons button {
-  background-color: var(--bg-primary);
-  border: none;
-  border-radius: 50px;
+.btn {
   padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.3s ease;
-  color: var(--text-muted);
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  background-color: #1f1f1f;
+  color: #b0b0b0;
 }
 
-.action-buttons button:hover {
-  background-color: var(--bg-primary-light);
+.btn-start {
+  background-color: #2a2a2a;
+  color: #4a9eff;
+  border: 1px solid #4a9eff;
 }
 
-.action-buttons button:disabled {
+.btn-pause {
+  background-color: #2a2a2a;
+  color: #f39c12;
+  border: 1px solid #f39c12;
+}
+
+.btn-stop {
+  background-color: #2a2a2a;
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+}
+
+.btn:hover {
+  opacity: 0.9;
+}
+
+.btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.project-modal-overlay,
-.settings-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.project-modal-content,
-.settings-modal-content {
-  background-color: var(--bg-secondary);
-  border-radius: 15px;
-  padding: 20px;
-  max-width: 500px;
-  width: 90%;
-  max-height: 80%;
-  overflow-y: auto;
-}
-
-.project-modal-header,
-.settings-modal-header {
+.timer-stats {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.close-btn {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: var(--text-muted);
-}
-
-.project-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.project-item {
-  display: flex;
-  align-items: center;
+  background-color: #1a1a1a;
   padding: 10px;
   border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  border: 1px solid #1f1f1f;
 }
 
-.project-item:hover {
-  background-color: var(--bg-primary-light);
-}
-
-.project-item.selected {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.project-name-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-}
-
-.project-details {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.no-projects {
-  text-align: center;
-  padding: 20px;
-  color: var(--text-muted);
-}
-
-.settings-group {
+.stat-item {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.settings-input {
-  display: flex;
   align-items: center;
-  gap: 10px;
 }
 
-.settings-input button {
-  background: none;
-  border: 1px solid var(--text-muted);
-  border-radius: 50%;
-  width: 30px;
-  height: 30px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: pointer;
+.stat-item span {
+  color: #7a7a7a;
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+  text-transform: uppercase;
 }
 
-.settings-input input {
-  width: 60px;
-  text-align: center;
-  border: 1px solid var(--text-muted);
-  border-radius: 5px;
-  padding: 5px;
-}
-
-/* Responsividade */
-@media (max-width: 600px) {
-  .project-select-btn {
-    max-width: 100%;
-    padding: 10px 12px;
-    font-size: 0.9rem;
-  }
+.stat-item strong {
+  color: #4a9eff;
+  font-size: 1rem;
+  font-weight: 300;
 }
 </style>
