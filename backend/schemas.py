@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class UserBase(BaseModel):
     """Schema base para usuário"""
@@ -60,3 +60,57 @@ class Event(EventBase):
 
     class Config:
         orm_mode = True
+
+class PomodoroSessionBase(BaseModel):
+    project_id: Optional[int] = None
+    work_duration: int = Field(..., description="Duração do trabalho em minutos")
+    break_duration: int = Field(..., description="Duração do intervalo em minutos")
+    status: str = Field(default="completed", description="Status da sessão")
+    mode: str = Field(description="Modo atual: work ou break")
+
+class PomodoroSessionCreate(PomodoroSessionBase):
+    start_time: Optional[datetime] = None
+
+class PomodoroSessionResponse(PomodoroSessionBase):
+    id: int
+    user_id: int
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    total_work_time: int = 0
+    is_completed: bool = False
+
+class ProjectBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    status: str = "active"
+
+class ProjectCreate(ProjectBase):
+    pass
+
+class ProjectResponse(ProjectBase):
+    id: int
+    total_pomodoro_sessions: int = 0
+    total_work_time: int = 0
+    start_date: datetime
+    end_date: Optional[datetime] = None
+
+class StatisticsBase(BaseModel):
+    total_work_time: int = 0
+    total_pomodoro_sessions: int = 0
+    most_productive_project: Optional[Dict] = None
+    daily_productivity: List[Dict] = []
+    weekly_productivity: List[Dict] = []
+    monthly_productivity: List[Dict] = []
+
+class AchievementBase(BaseModel):
+    title: str
+    description: str
+    achievement_type: str
+    total_work_time_required: int = 0
+    total_sessions_required: int = 0
+
+class AchievementResponse(AchievementBase):
+    id: int
+    user_id: int
+    achieved_at: datetime
+    is_unlocked: bool = False

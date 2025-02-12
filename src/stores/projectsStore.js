@@ -1,5 +1,6 @@
 import { ref, onMounted } from 'vue'
 import { defineStore } from 'pinia'
+import axios from 'axios'
 
 const PROJECTS_STORAGE_KEY = 'productivityProjects_v1'
 const PROJECTS_BACKUP_KEY = 'productivityProjects_backup'
@@ -202,6 +203,28 @@ export const useProjectsStore = defineStore('projects', () => {
     return null
   }
 
+  // Atualizar tempo do projeto
+  const updateProjectTime = async (projectId, minutes) => {
+    try {
+      const response = await axios.patch(`/api/projects/${projectId}/time`, { minutes })
+      
+      // Atualizar projeto localmente
+      const projectIndex = projects.value.findIndex(p => p.id === projectId)
+      if (projectIndex !== -1) {
+        projects.value[projectIndex] = {
+          ...projects.value[projectIndex],
+          totalWorkTime: response.data.totalWorkTime,
+          totalPomodoroSessions: response.data.totalPomodoroSessions
+        }
+      }
+
+      return response.data
+    } catch (error) {
+      console.error('Erro ao atualizar tempo do projeto:', error)
+      return null
+    }
+  }
+
   // Inicializar carregamento de projetos
   loadProjects()
 
@@ -212,8 +235,8 @@ export const useProjectsStore = defineStore('projects', () => {
     deleteProject,
     clearAllProjects,
     loadProjects,
-    // Exportar novo método
-    addProjectTime
+    addProjectTime,
+    updateProjectTime
   }
 }, {
   // Configurações de persistência do Pinia

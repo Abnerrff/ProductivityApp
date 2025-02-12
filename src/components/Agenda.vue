@@ -31,11 +31,11 @@
         <button @click="nextMonth">&gt;</button>
       </div>
 
-      <div class="calendar-grid">
+      <div class="agenda-grid">
         <div 
           v-for="day in calendarDays" 
           :key="day.date" 
-          class="calendar-day"
+          class="day-card"
           :class="{
             'current-month': day.isCurrentMonth,
             'has-events': day.events.length > 0
@@ -345,108 +345,161 @@ onMounted(() => {
 </script>
 
 <style scoped>
+:root {
+  --bg-dark: #121212;
+  --bg-card: #1c1c1c;
+  --text-primary: #e0e0e0;
+  --text-secondary: #a0a0a0;
+  --accent-blue: #4a9eff;
+  --accent-green: #2ecc71;
+  --accent-orange: #f39c12;
+}
+
 .agenda-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
-  background-color: var(--background-darker);
-  border-radius: 10px;
+  padding: 30px;
+  background-color: var(--bg-dark);
+  border-radius: 12px;
 }
 
 .agenda-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  border-bottom: 2px solid rgba(74, 158, 255, 0.2);
+  padding-bottom: 15px;
 }
 
-.agenda-actions {
+.agenda-header h2 {
+  color: var(--accent-blue);
+  font-size: 1.8rem;
+  font-weight: 300;
+  margin: 0;
+}
+
+.calendar-navigation {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.add-event-btn {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.view-toggle {
-  display: flex;
-  background-color: var(--background-mid-dark);
-  border-radius: 5px;
-  overflow: hidden;
-}
-
-.view-toggle button {
+.btn-nav {
+  background-color: rgba(74, 158, 255, 0.1);
+  color: var(--accent-blue);
+  border: 2px solid var(--accent-blue);
   padding: 8px 15px;
-  background: none;
-  border: none;
-  color: var(--text-color);
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
 }
 
-.view-toggle button.active {
-  background-color: var(--primary-color);
-  color: white;
+.btn-nav:hover {
+  background-color: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.3);
 }
 
-.calendar-navigation {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
+.current-date {
+  color: var(--text-primary);
+  font-weight: 300;
 }
 
-.calendar-grid {
+.agenda-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 10px;
+  gap: 15px;
 }
 
-.calendar-day {
-  border: 1px solid var(--border-color);
-  padding: 10px;
-  text-align: center;
-  background-color: var(--background-mid-dark);
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+.day-card {
+  background-color: var(--bg-card);
+  border-radius: 12px;
+  padding: 15px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease;
 }
 
-.calendar-day:hover {
-  background-color: var(--background-dark);
+.day-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(to right, var(--accent-blue), var(--accent-green));
 }
 
-.calendar-day.current-month {
-  background-color: var(--background-dark);
+.day-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
 }
 
-.calendar-day.has-events {
-  border-color: var(--primary-color);
+.day-number {
+  color: var(--accent-green);
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+  font-weight: 300;
 }
 
 .day-events {
-  display: flex;
-  justify-content: center;
-  margin-top: 5px;
+  margin-top: 15px;
 }
 
-.event-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin: 0 2px;
+.event-item {
+  background-color: rgba(74, 158, 255, 0.1);
+  border: 2px solid var(--accent-blue);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+}
+
+.event-item:hover {
+  background-color: rgba(74, 158, 255, 0.2);
+  box-shadow: 0 0 15px rgba(74, 158, 255, 0.2);
+}
+
+.event-time {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-right: 10px;
+}
+
+.event-title {
+  color: var(--text-primary);
+  font-weight: 300;
+}
+
+.event-icon {
+  color: var(--accent-blue);
+  margin-right: 10px;
+}
+
+.btn-add-event {
+  background-color: rgba(46, 204, 113, 0.1);
+  color: var(--accent-green);
+  border: 2px solid var(--accent-green);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 20px;
+  display: block;
+  text-align: center;
+}
+
+.btn-add-event:hover {
+  background-color: rgba(46, 204, 113, 0.2);
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
 }
 
 .agenda-list-view {
-  background-color: var(--background-mid-dark);
+  background-color: var(--bg-card);
   border-radius: 10px;
   padding: 20px;
 }
@@ -457,13 +510,13 @@ onMounted(() => {
 
 .agenda-list-day h4 {
   margin-bottom: 10px;
-  color: var(--text-color-light);
+  color: var(--text-primary);
 }
 
 .agenda-list-event {
   display: flex;
   align-items: center;
-  background-color: var(--background-dark);
+  background-color: var(--bg-dark);
   border-radius: 5px;
   padding: 10px;
   margin-bottom: 10px;
@@ -471,7 +524,7 @@ onMounted(() => {
 
 .event-time {
   flex: 0 0 80px;
-  color: var(--text-color-light);
+  color: var(--text-secondary);
 }
 
 .event-details {
@@ -492,7 +545,7 @@ onMounted(() => {
 }
 
 .event-location {
-  color: var(--text-color-light);
+  color: var(--text-secondary);
 }
 
 .event-actions {
@@ -502,8 +555,8 @@ onMounted(() => {
 
 .event-actions button {
   background: none;
-  border: 1px solid var(--border-color);
-  color: var(--text-color);
+  border: 1px solid var(--text-secondary);
+  color: var(--text-secondary);
   padding: 5px 10px;
   border-radius: 3px;
   cursor: pointer;
@@ -511,7 +564,7 @@ onMounted(() => {
 }
 
 .event-actions button:hover {
-  background-color: var(--background-mid-dark);
+  background-color: var(--bg-card);
 }
 
 .event-status-badge {
@@ -554,7 +607,7 @@ onMounted(() => {
 }
 
 .modal-content {
-  background-color: var(--background-darker);
+  background-color: var(--bg-dark);
   border-radius: 10px;
   padding: 30px;
   width: 500px;
@@ -562,7 +615,7 @@ onMounted(() => {
   max-height: 90%;
   overflow-y: auto;
   box-shadow: 0 15px 50px rgba(0,0,0,0.3);
-  border: 2px solid var(--primary-color);
+  border: 2px solid var(--accent-blue);
   position: relative;
   transform: scale(1);
   transition: all 0.3s ease;
@@ -576,8 +629,8 @@ onMounted(() => {
   right: -5px;
   bottom: -5px;
   background: linear-gradient(45deg, 
-    rgba(var(--primary-color-rgb), 0.1), 
-    rgba(var(--primary-color-rgb), 0.05)
+    rgba(var(--accent-blue-rgb), 0.1), 
+    rgba(var(--accent-blue-rgb), 0.05)
   );
   z-index: -1;
   border-radius: 15px;
@@ -591,7 +644,7 @@ onMounted(() => {
 .form-group label {
   display: block;
   margin-bottom: 5px;
-  color: var(--text-color-light);
+  color: var(--text-secondary);
 }
 
 .form-group input,
@@ -599,10 +652,10 @@ onMounted(() => {
 .form-group textarea {
   width: 100%;
   padding: 10px;
-  border: 1px solid var(--border-color);
+  border: 1px solid var(--text-secondary);
   border-radius: 5px;
-  background-color: var(--background-mid-dark);
-  color: var(--text-color);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 
 .modal-actions {
@@ -620,12 +673,12 @@ onMounted(() => {
 }
 
 .modal-actions button:first-child {
-  background-color: var(--primary-color);
+  background-color: var(--accent-blue);
   color: white;
 }
 
 .modal-actions button:last-child {
-  background-color: var(--background-mid-dark);
-  color: var(--text-color);
+  background-color: var(--bg-card);
+  color: var(--text-primary);
 }
 </style>

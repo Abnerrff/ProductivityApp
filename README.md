@@ -1,73 +1,76 @@
-# Productivity App 🚀
+# Productivity App
 
 ## Descrição
-Um aplicativo de produtividade moderno e responsivo, construído com Vue 3 e Vite.
+Aplicativo de produtividade com timer Pomodoro, gerenciamento de projetos e sistema de conquistas.
 
-## Recursos
-- 📋 Gerenciamento de Tarefas
-- 📂 Organização de Projetos
-- 📊 Estatísticas de Produtividade
-- 🏆 Sistema de Gamificação
-- ⏰ Técnica Pomodoro
-- ⚙️ Configurações Personalizáveis
-
-## Tecnologias Utilizadas
-- Vue 3
-- Vite
-- Pinia
-- Font Awesome
-- Vitest
-
-## Instalação
-
-### Pré-requisitos
-- Node.js (v16+)
+## Requisitos
+- Python 3.9+
+- Node.js 16+
+- pip
 - npm
 
-### Passos
-1. Clone o repositório
+## Configuração do Ambiente
+
+### Backend
+1. Criar ambiente virtual:
 ```bash
-git clone https://github.com/seu-usuario/productivity-app.git
+python -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-2. Instale as dependências
+2. Instalar dependências:
 ```bash
-cd productivity-app
+pip install -r backend/requirements.txt
+```
+
+3. Configurar banco de dados:
+```bash
+cd backend
+alembic upgrade head
+```
+
+### Frontend
+```bash
 npm install
 ```
 
-3. Inicie o servidor de desenvolvimento
+## Executando o Projeto
+
+### Método Automático
+```bash
+python start_project.py
+```
+
+### Método Manual
+
+1. Iniciar Backend:
+```bash
+cd backend
+python run_server.py
+```
+
+2. Iniciar Frontend:
 ```bash
 npm run dev
 ```
 
-## Estrutura do Projeto
-```
-src/
-├── assets/          # Recursos estáticos
-├── components/      # Componentes Vue
-│   ├── layout/      # Componentes de layout
-│   └── ui/          # Componentes de interface
-├── stores/          # Gerenciamento de estado com Pinia
-├── utils/           # Utilitários e helpers
-└── views/           # Páginas/Views
-```
+## Recursos
+- Timer Pomodoro
+- Gerenciamento de Projetos
+- Sistema de Conquistas
+- Estatísticas de Produtividade
 
-## Testes
-Execute os testes com:
-```bash
-npm run test
-```
+## Tecnologias
+- Backend: FastAPI, SQLAlchemy
+- Frontend: Vue.js
+- Banco de Dados: SQLite
 
 ## Contribuição
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+1. Faça fork do projeto
+2. Crie sua branch (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adicionar nova feature'`)
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
 
 ## Licença
 MIT License
-
-## Contato
-Seu Nome - seu-email@exemplo.com
