@@ -2,10 +2,10 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from .database import engine, Base, get_db
-from .routes import router
-from .models import User, Project, PomodoroSession, Achievement
-from .auth import create_access_token, get_current_user
+from backend.database import engine, Base, get_db
+from backend.routes import router
+from backend.models import User, Project, PomodoroSession, Achievement
+from backend.auth import create_access_token, get_current_user
 
 Base.metadata.create_all(bind=engine)
 

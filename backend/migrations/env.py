@@ -1,3 +1,10 @@
+import os
+import sys
+
+# Adicionar diretório do backend ao path do Python
+backend_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, backend_dir)
+
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
@@ -5,7 +12,9 @@ from alembic import context
 
 # Importar modelos para garantir que sejam carregados
 from models import Base
-from database import DATABASE_URL
+
+# Configuração síncrona do banco de dados
+DATABASE_URL = "sqlite:///./productivity.db"
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

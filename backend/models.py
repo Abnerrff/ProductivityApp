@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from .database import Base
+from backend.database import Base  
 
 class User(Base):
     """Modelo de usuário"""
@@ -26,13 +26,16 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(String, nullable=True)
-    status = Column(String, default="pending")  # pending, in_progress, completed
-    priority = Column(Integer, default=2)  # 1-baixa, 2-média, 3-alta
+    status = Column(String, default="pending")
+    priority = Column(Integer, default=2)
     created_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime, nullable=True)
     
     owner_id = Column(Integer, ForeignKey("users.id"))
+    project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
+    
     owner = relationship("User", back_populates="tasks")
+    project = relationship("Project", back_populates="tasks")
 
 class Event(Base):
     """Modelo de evento para agenda"""
@@ -45,8 +48,8 @@ class Event(Base):
     end_time = Column(DateTime)
     location = Column(String, nullable=True)
     is_all_day = Column(Boolean, default=False)
-    
     owner_id = Column(Integer, ForeignKey("users.id"))
+    
     owner = relationship("User", back_populates="events")
 
 class PomodoroSession(Base):
@@ -56,22 +59,20 @@ class PomodoroSession(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
-    
     start_time = Column(DateTime, default=datetime.utcnow)
     end_time = Column(DateTime, nullable=True)
     
-    work_duration = Column(Integer)  # Em minutos
-    break_duration = Column(Integer)  # Em minutos
+    work_duration = Column(Integer)  
+    break_duration = Column(Integer)  
     
-    status = Column(String, default="completed")  # completed, interrupted
-    mode = Column(String)  # work, break
+    status = Column(String, default="completed")  
+    mode = Column(String)  
     
-    total_work_time = Column(Integer, default=0)  # Em segundos
-    total_break_time = Column(Integer, default=0)  # Em segundos
+    total_work_time = Column(Integer, default=0)  
+    total_break_time = Column(Integer, default=0)  
     
     is_completed = Column(Boolean, default=False)
     
-    # Relacionamentos
     user = relationship("User", back_populates="pomodoro_sessions")
     project = relationship("Project", back_populates="pomodoro_sessions")
 
@@ -84,19 +85,17 @@ class Project(Base):
     description = Column(String, nullable=True)
     
     total_pomodoro_sessions = Column(Integer, default=0)
-    total_work_time = Column(Integer, default=0)  # Em minutos
+    total_work_time = Column(Integer, default=0)  
     
     start_date = Column(DateTime, default=datetime.utcnow)
     end_date = Column(DateTime, nullable=True)
+    status = Column(String, default="active")  
     
-    status = Column(String, default="active")  # active, completed, paused
-    
-    # Relacionamentos
     user_id = Column(Integer, ForeignKey("users.id"))
     user = relationship("User", back_populates="projects")
     
-    # Sessões de Pomodoro relacionadas
     pomodoro_sessions = relationship("PomodoroSession", back_populates="project")
+    tasks = relationship("Task", back_populates="project")
 
 class Achievement(Base):
     """Modelo de Conquistas baseadas em Pomodoro"""
@@ -104,18 +103,14 @@ class Achievement(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
-    
     title = Column(String)
     description = Column(String)
     
     total_pomodoro_sessions = Column(Integer, default=0)
-    total_work_time = Column(Integer, default=0)  # Em minutos
+    total_work_time = Column(Integer, default=0)  
     
-    # Tipos de conquistas
-    achievement_type = Column(String)  # productivity, consistency, focus
+    achievement_type = Column(String)  
     
-    # Datas
     achieved_at = Column(DateTime, default=datetime.utcnow)
     
-    # Relacionamentos
     user = relationship("User", back_populates="achievements")

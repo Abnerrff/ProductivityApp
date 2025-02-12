@@ -1,56 +1,53 @@
 import os
 import subprocess
 import sys
-import venv
+import shutil
 
-def run_command(command, cwd=None):
+def run_command(command, cwd=None, shell=True):
     """Executar comando no shell"""
     try:
-        result = subprocess.run(
+        subprocess.run(
             command, 
-            shell=True, 
             cwd=cwd, 
-            capture_output=True, 
-            text=True, 
+            shell=shell, 
             check=True
         )
-        print(result.stdout)
     except subprocess.CalledProcessError as e:
-        print(f"Erro ao executar {command}:")
-        print(e.stderr)
+        print(f"Erro ao executar {command}")
         sys.exit(1)
 
 def main():
     # Diretório do projeto
     project_dir = os.path.dirname(os.path.abspath(__file__))
-    backend_dir = os.path.join(project_dir, 'backend')
+    venv_path = os.path.join(project_dir, 'venv')
 
     print("🔧 Configurando ambiente do Productivity App")
 
-    # Verificar Python
-    print("🐍 Verificando Python...")
-    run_command("python --version")
+    # Remover ambiente virtual existente
+    if os.path.exists(venv_path):
+        shutil.rmtree(venv_path)
 
     # Criar ambiente virtual
     print("🌐 Criando ambiente virtual...")
-    venv_path = os.path.join(project_dir, 'venv')
-    venv.create(venv_path, with_pip=True)
+    run_command(f'python -m venv "{venv_path}"')
 
     # Ativar ambiente virtual
-    activate_this = os.path.join(venv_path, 'Scripts', 'activate_this.py')
-    exec(open(activate_this).read(), {'__file__': activate_this})
+    activate_script = os.path.join(venv_path, 'Scripts', 'activate')
+    
+    # Instalar pip e dependências
+    pip_path = os.path.join(venv_path, 'Scripts', 'pip')
+    python_path = os.path.join(venv_path, 'Scripts', 'python')
 
-    # Atualizar pip
     print("🆙 Atualizando pip...")
-    run_command("python -m pip install --upgrade pip")
+    run_command(f'{python_path} -m pip install --upgrade pip')
 
     # Instalar dependências do backend
     print("📦 Instalando dependências do backend...")
-    run_command("pip install -r backend/requirements.txt", project_dir)
+    run_command(f'{pip_path} install -r backend/requirements.txt', project_dir)
 
     # Instalar dependências do frontend
     print("🌟 Instalando dependências do frontend...")
-    run_command("npm install", project_dir)
+    run_command('npm install', project_dir)
 
     print("✅ Ambiente configurado com sucesso!")
 

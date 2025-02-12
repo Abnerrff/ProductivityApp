@@ -1,31 +1,31 @@
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from sqlalchemy.orm import declarative_base
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.pool import NullPool
 
 # Configuração do banco de dados SQLite
-DATABASE_URL = "sqlite+aiosqlite:///./productivity_app.db"
+DATABASE_URL = "sqlite:///./productivity.db"
 
-# Criação do engine assíncrono
-engine = create_async_engine(
+# Criação do engine síncrono
+engine = create_engine(
     DATABASE_URL, 
     echo=True,  # Mostra as queries SQL
     poolclass=NullPool  # Evita problemas de concorrência
 )
 
 # Criação do SessionLocal para gerenciar sessões
-SessionLocal = async_sessionmaker(
-    engine, 
-    class_=AsyncSession, 
-    expire_on_commit=False
+SessionLocal = sessionmaker(
+    bind=engine, 
+    autocommit=False, 
+    autoflush=False
 )
 
 # Base para os modelos
 Base = declarative_base()
 
-async def get_db():
+def get_db():
     """Dependency para obter sessão de banco de dados"""
-    async with SessionLocal() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
